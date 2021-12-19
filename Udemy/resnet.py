@@ -18,6 +18,7 @@ config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
 session = tf.compat.v1.Session(config=config)
 
+
 # Plot the validation and training data separately
 def plot_loss_curves(history):
     """
@@ -90,6 +91,37 @@ def predict(image_prediction_path, model_1, prediction_data, name):
     sleep(2)
 
 
+def identity_block(x, filter_size):
+    x_skip = x
+    x = layer.Conv2D(filter_size, (3, 3), padding='same')(x)
+    x = layer.BatchNormalization(axis=3)(x)
+    x = layer.Conv2D(filter_size, (3, 3), padding='same')(x)
+    x = layer.BatchNormalization(axis=3)(x)
+    x = layer.Conv2D(filter_size, (3, 3), padding='same')(x)
+    x = layer.BatchNormalization()
+    x = tf.keras.layers.Activation('relu')(x)
+    return x
+
+
+def convolutional_block(x, filter_size):
+    # copy tensor to variable called x_skip
+    x_skip = x
+    # Layer 1
+    x = tf.keras.layers.Conv2D(filter_size, (3, 3), padding='same', strides=(2, 2))(x)
+    x = tf.keras.layers.BatchNormalization(axis=3)(x)
+    x = tf.keras.layers.Activation('relu')(x)
+    # Layer 2
+    x = tf.keras.layers.Conv2D(filter_size, (3, 3), padding='same')(x)
+    x = tf.keras.layers.BatchNormalization(axis=3)(x)
+    # Processing Residue with conv(1,1)
+    x_skip = tf.keras.layers.Conv2D(filter_size, (1, 1), strides=(2, 2))(x_skip)
+    # Add Residue
+    x = tf.keras.layers.Add()([x, x_skip])
+    x = tf.keras.layers.Activation('relu')(x)
+    return x
+
+
+
 #
 #
 # Start of code
@@ -107,38 +139,61 @@ train_datagen = ImageDataGenerator(rescale=1 / 255.,
 
 valid_datagen = ImageDataGenerator(rescale=1 / 255.)
 
-dirtrain = "/Users/stuar/Desktop/TrainingData/food-101/train"
-dirtest = "/Users/stuar/Desktop/TrainingData/food-101/test"
+trainpath = "/Users/stuar/Desktop/TrainingData/FOOD101/images/train/"
+testpath = "/Users/stuar/Desktop/TrainingData/FOOD101/images/test/"
 
-data_dir = pathlib.Path(dirtrain)
+data_dir = pathlib.Path(trainpath)
 class_names = np.array(sorted([item.name for item in data_dir.glob('*')]))
 print(class_names)
-train_data = train_datagen.flow_from_directory(dirtrain, batch_size=10, target_size=(224, 224), shuffle=True,
+train_data = train_datagen.flow_from_directory(trainpath, batch_size=30, target_size=(224, 224), shuffle=True,
                                                class_mode="categorical")
-test_data = valid_datagen.flow_from_directory(dirtest, batch_size=10, target_size=(224, 224), shuffle=True,
+test_data = valid_datagen.flow_from_directory(testpath, batch_size=30, target_size=(224, 224), shuffle=True,
                                               class_mode="categorical")
 
-base = tf.keras.applications.ResNet152(input_shape=(224, 224, 3),
-                                         include_top=False,
-                                         weights='resnet')
-base.trainable = False
-inputs = tf.keras.Input(shape=(224, 224, 3))
-global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
 
-x = base(inputs, training=False)
-x = global_average_layer(x)
-x = tf.keras.layers.Dropout(0.2)(x)
-prediction_layer = tf.keras.layers.Dense(101)(x)
-outputs = layer.Activation('softmax')(prediction_layer)
-model = tf.keras.Model(inputs, outputs)
+shape = (224, 224, 3)
 
-print(len(train_data))
+# Step 1 (Setup Input Layer)
+x_input = tf.keras.layers.Input(shape)
+x = tf.keras.layers.ZeroPadding2D((3, 3))(x_input)
+# Step 2 (Initial Conv layer along with maxPool)
+x = tf.keras.layers.Conv2D(64, kernel_size=7, strides=2, padding='same')(x)
+x = tf.keras.layers.BatchNormalization()(x)
+x = tf.keras.layers.Activation('relu')(x)
+x = tf.keras.layers.MaxPool2D(pool_size=3, strides=2, padding='same')(x)
+# Define size of sub-blocks and initial filter size
+block_layers = [3, 4, 6, 3]
+filter_size = 64
+# Step 3 Add the Resnet Blocks
+for i in range(4):
+    if i == 0:
+        # For sub-block 1 Residual/Convolutional block not needed
+        for j in range(block_layers[i]):
+            x = identity_block(x, filter_size)
+    else:
+        # One Residual/Convolutional Block followed by Identity blocks
+        # The filter size will go on increasing by a factor of 2
+        filter_size = filter_size * 2
+        x = convolutional_block(x, filter_size)
+        for j in range(block_layers[i] - 1):
+            x = identity_block(x, filter_size)
+# Step 4 End Dense Network
+x = tf.keras.layers.AveragePooling2D((2, 2), padding='same')(x)
+x = tf.keras.layers.Flatten()(x)
+x = tf.keras.layers.Dense(512, activation='relu')(x)
+x = tf.keras.layers.Dense(13, activation='softmax')(x)
+model = tf.keras.models.Model(inputs=x_input, outputs=x, name="ResNet34")
+
 model.compile(tf.keras.optimizers.Adam(learning_rate=.0001),
-              loss=tf.keras.losses.CategoricalCrossentropy(),
-              metrics=['accuracy'])
+                   loss=tf.keras.losses.CategoricalCrossentropy(),
+                   metrics=['accuracy'])
 
-history_1 = model.fit(train_data, epochs=5, steps_per_epoch=len(train_data),
-                      validation_data=test_data, validation_steps=len(test_data))
+history_1 = model.fit(train_data, epochs=7, steps_per_epoch=len(train_data),
+                           validation_data=test_data, validation_steps=len(test_data))
+
+
+
+
 
 plot_loss_curves(history_1)
 # plot_loss_curves(history_2)
