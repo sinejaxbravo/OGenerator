@@ -29,8 +29,8 @@ urbanoutfitters = "https://www.urbanoutfitters.com/womens-tops?page=8"
 # Reiss works! https://www.reiss.com/us/mens/coats-jackets/jackets/
 #Best website yet!!! SSENSE
 site = "https://www.ssense.com/en-us/men/designers/rick-owens?clickref=1100liEKZKuN&utm_source=" \
-       "PH_305950&utm_medium=affiliate&utm_content=0&utm_term=https%3A%2F%2Fclothedup.com%2F&utm_campaign=&page=6"
-x = 1800
+       "PH_305950&utm_medium=affiliate&utm_content=0&utm_term=https%3A%2F%2Fclothedup.com%2F&utm_campaign=&page=7"
+x = 1900
 print()
 
 s = Service(path)
