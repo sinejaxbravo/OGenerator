@@ -24,11 +24,13 @@ import pymongo
 path = "C:\Program Files (x86)\Google\chromedriver.exe"
 photofolder = "/Users/stuar/Desktop/TrainingData/FashionGen"
 
-pacsun = "https://www.pacsun.com/mens/"
 urbanoutfitters = "https://www.urbanoutfitters.com/womens-tops?page=8"
-# karmaloop = "https://www.karmaloop.com/category/mens/clothing"
-site = "https://www2.hm.com/en_us/men/products/hoodies-sweatshirts.html"
-x = 100
+
+# Reiss works! https://www.reiss.com/us/mens/coats-jackets/jackets/
+#Best website yet!!! SSENSE
+site = "https://www.ssense.com/en-us/men/designers/rick-owens?clickref=1100liEKZKuN&utm_source=" \
+       "PH_305950&utm_medium=affiliate&utm_content=0&utm_term=https%3A%2F%2Fclothedup.com%2F&utm_campaign=&page=6"
+x = 1800
 print()
 
 s = Service(path)
@@ -63,7 +65,7 @@ time.sleep(3)
 # images = driver.find_elements(By.TAG_NAME, "img")
 # images = driver.find_elements(By.CSS_SELECTOR, "[data-auto-id='image']")
 
-path = "C:/Users/stuar/Desktop/TrainingData/FashionGen/"
+path = "C:/Users/stuar/Desktop/TrainingData/temp/"
 
 h = driver.get_window_size()
 height = h['height']
@@ -81,20 +83,20 @@ print("Parsing")
 print(len(images))
 
 for i in images:
-    href = i.get_attribute("src")
-    dest = (path+"hm" + str(x)+".jpg")
+    href = i.get_attribute("srcset")
+    dest = (path+"rowens_" + str(x)+".jpg")
     # print(i.get_attribute("class"))
     # print("photo: ", dest)
     # urllib.request.urlretrieve(href, dest)
     # print(href)
     print(href)
     print(x)
-    if i.get_attribute("class") == "item-image":
-        try:
-            urllib.request.urlretrieve(href, dest)
-        except:
-            print("Image error")
-        x += 1
+
+    try:
+        urllib.request.urlretrieve(href, dest)
+    except:
+        print("Image error")
+    x += 1
 
 # src = img.get_attribute('src')
 # print(src)
