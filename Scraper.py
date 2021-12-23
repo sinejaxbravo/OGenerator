@@ -28,9 +28,8 @@ urbanoutfitters = "https://www.urbanoutfitters.com/womens-tops?page=8"
 
 # Reiss works! https://www.reiss.com/us/mens/coats-jackets/jackets/
 #Best website yet!!! SSENSE
-site = "https://www.ssense.com/en-us/men/designers/rick-owens?clickref=1100liEKZKuN&utm_source=" \
-       "PH_305950&utm_medium=affiliate&utm_content=0&utm_term=https%3A%2F%2Fclothedup.com%2F&utm_campaign=&page=7"
-x = 1900
+site = "https://www.ssense.com/en-us/men/designers/maison-margiela/clothing?page=7"
+x = 5100
 print()
 
 s = Service(path)
@@ -84,7 +83,7 @@ print(len(images))
 
 for i in images:
     href = i.get_attribute("srcset")
-    dest = (path+"rowens_" + str(x)+".jpg")
+    dest = (path+"mens_" + str(x)+".jpg")
     # print(i.get_attribute("class"))
     # print("photo: ", dest)
     # urllib.request.urlretrieve(href, dest)
