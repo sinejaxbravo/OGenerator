@@ -46,7 +46,7 @@ def findAndCut(image, mode="shirt"):
             ticker = 0
             for j in range(20, int(image.shape[1])):
                 if list(image[(y - i), (x - j)]) != [255, 255, 255]:
-                    lastIJ = (y - i) - 5
+                    lastIJ = (y - i) - 10
                     ticker += 1
             # TODO tinker with this percentage value
             if lastIJ != 0 and ticker >= int(x / 3):

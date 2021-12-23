@@ -147,7 +147,10 @@ plot_loss_curves(history_1)
 # #
 # Test region
 #
-
+# TODO GET A PIXEL VALUE FOR THE CENTER OF THE SHIRT AND ONE FOR THE PANTS THEN JUST TRAIN ON THESE
+# TODO ---- WILL RESULT IN US NOT HAVING TO WORRY ABOUT BACKGROUNDS BUT WILL ONLY WORK FOR SOLIDS.
+# TODO ---- BUT A WAY THAT WE COULD MITIGATE THIS IS TO SKIM OVER ALL OF THE ITEM AND ADD ANOTHER COLOR
+#  IF ACCENTS PRESENT
 results = []
 for filename in os.listdir("clothes/pairs"):
     imag = image.load_img(f"clothes/pairs/{filename}", target_size=(224, 224))

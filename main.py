@@ -15,32 +15,19 @@ for filename in os.listdir("clothes/pants"):
 print(pants, "    shirts ", shirts)
 
 for pant in pants:
+    p = pant
+    p = FormatPhoto.makeImage(f"clothes/pants/{p}")
+    p = FormatPhoto.rescaleImage(p)
+    p = FormatPhoto.noiseReduction(p)
+    p = FormatPhoto.findAndCut(p, "")
     for shirt in shirts:
-        p = pant
+
         s = shirt
         s = FormatPhoto.makeImage(f"clothes/shirts/{s}")
-        p = FormatPhoto.makeImage(f"clothes/pants/{p}")
         s = FormatPhoto.rescaleImage(s)
-        p = FormatPhoto.rescaleImage(p)
-
-        # if p not in saved:
-        #     cv2.imwrite(f"clothes/pairs/{pant}", p)
-        # if s not in saved:
-        #     cv2.imwrite(f"clothes/pairs/{pant}", s)
-
         s = FormatPhoto.noiseReduction(s)
-        p = FormatPhoto.noiseReduction(p)
-        # if p not in saved:
-        #     cv2.imwrite(f"clothes/pairs/{pant}", p)
-        # if s not in saved:
-        #     cv2.imwrite(f"clothes/pairs/{pant}", s)
-
         s = FormatPhoto.findAndCut(s, "shirt")
-        p = FormatPhoto.findAndCut(p, "")
-        # if p not in saved:
-        #     cv2.imwrite(f"clothes/pairs/{pant}", p)
-        # if s not in saved:
-        #     cv2.imwrite(f"clothes/pairs/{pant}", s)
+
         newPic = FormatPhoto.stitch(s, p)
         name = pant[0:pant.index(".")] + shirt[0:shirt.index(".")]
         cv2.imwrite(f"clothes/pairs/{name}.jpg", newPic)
