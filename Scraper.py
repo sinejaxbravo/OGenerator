@@ -28,9 +28,10 @@ urbanoutfitters = "https://www.urbanoutfitters.com/womens-tops?page=8"
 
 # Reiss works! https://www.reiss.com/us/mens/coats-jackets/jackets/
 #Best website yet!!! SSENSE
+
 site = "https://www.ssense.com/en-us/men/designers/maison-margiela/clothing?page=7"
 x = 5100
-print()
+
 
 s = Service(path)
 
