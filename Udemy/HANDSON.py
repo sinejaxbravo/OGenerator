@@ -63,8 +63,17 @@ def sequence_b(x, filt, stride, kernel):
     x = residual(x, filt, stride, kernel)
     return x
 
+# TODO make sure that the norm and pool align!!! Can also see if you can residual the whole concat
+#  or "x = residual(concat)...?
+def concat(x, filt, stride, kernel):
+    s1 = block_pool(x, filt, stride, kernel)
+    s1 = block_pool(s1, filt, stride, kernel)
+    s1 = block_pool(s1, filt, stride, kernel)
 
-def concat(s1, s2):
+    s2 = block_norm(x, filt, stride, kernel)
+    s2 = block_norm(s2, filt, stride, kernel)
+    s2 = block_norm(s2, filt, stride, kernel)
+
     tot = layer.Add()([s1, s2])
     tot = layer.ReLU()(tot)
     tot = layer.BatchNormalization()(tot)
