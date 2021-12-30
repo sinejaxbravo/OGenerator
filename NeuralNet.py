@@ -116,16 +116,16 @@ dirtest = "/Users/stuar/Desktop/TrainingData/squares/test"
 data_dir = pathlib.Path(dirtrain)
 class_names = np.array(sorted([item.name for item in data_dir.glob('*')]))
 print(class_names)
-train_data = train_datagen.flow_from_directory(dirtrain, batch_size=30, target_size=(224, 224), shuffle=True,
+train_data = train_datagen.flow_from_directory(dirtrain, batch_size=30, target_size=(60, 60), shuffle=True,
                                                class_mode="categorical")
-test_data = valid_datagen.flow_from_directory(dirtest, batch_size=30, target_size=(224, 224), shuffle=True,
+test_data = valid_datagen.flow_from_directory(dirtest, batch_size=30, target_size=(60, 60), shuffle=True,
                                               class_mode="categorical")
 
-base = tf.keras.applications.ResNet152(input_shape=(224, 224, 3),
-                                         include_top=False,
-                                         weights='imagenet')
+base = tf.keras.applications.ResNet152(input_shape=(60, 60, 3),
+                                       include_top=False,
+                                       weights='imagenet')
 base.trainable = False
-inputs = tf.keras.Input(shape=(224, 224, 3))
+inputs = tf.keras.Input(shape=(60, 60, 3))
 global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
 
 x = base(inputs, training=False)
@@ -147,8 +147,6 @@ model.compile(tf.keras.optimizers.Adam(learning_rate=.001),
 history_1 = model.fit(train_data, epochs=8, steps_per_epoch=len(train_data),
                       validation_data=test_data, validation_steps=len(test_data))
 
-
-
 results = []
 stripes = []
 contrast = []
@@ -157,7 +155,7 @@ graphics = []
 patterns = []
 
 for filename in os.listdir("clothes/pairs"):
-    imag = image.load_img(f"clothes/pairs/{filename}", target_size=(224, 224))
+    imag = image.load_img(f"clothes/pairs/{filename}", target_size=(60, 60))
     img_array = image.img_to_array(imag)
     img_batch = np.expand_dims(img_array, 0)
     prediction = model.predict(img_batch)
@@ -166,7 +164,6 @@ for filename in os.listdir("clothes/pairs"):
     solid.append((prediction[0][2], filename))
     patterns.append((prediction[0][3], filename))
     stripes.append((prediction[0][4], filename))
-
 
 results = [contrast, graphics, solid, patterns, stripes]
 i = 1
