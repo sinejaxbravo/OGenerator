@@ -14,11 +14,31 @@ def rescaleImage(frame, scalar=0.4):
     return cv.resize(frame, dim, interpolation=cv.INTER_AREA)
 
 
-def noiseReduction(image, iterationCount=6):
+def getColor(image):
+    init = image[20, int(image.shape[1] / 2)]
+    print(init)
+    plt.imshow(image), plt.show()
+    for x in range(image.shape[0]):
+        res = image[x, int(image.shape[1] / 2)] - init
+        if np.average(res) > 100:
+            print(res)
+            return image[x, int(image.shape[1] / 2)]
+
+
+def makeMask(image, color):
+    for x in range(image.shape[0]):
+        for y in range(image.shape[1]):
+            if np.average(image[x, y] - color) > 50:
+                image[x, y] = [255, 255, 255]
+
+
+
+def noiseReduction(image, color, iterationCount=6):
     mask = np.zeros(image.shape[:2], np.uint8)
     background = np.zeros((1, 65), np.float64)
     forground = np.zeros((1, 65), np.float64)
-    rectangle = (5, 5, image.shape[1], image.shape[0])
+    rectangle = (6, 6, image.shape[1], image.shape[0])
+
     # rectangle = (5, 5, 100, 100)
     ret = cv.grabCut(image, mask, rectangle, background, forground, iterationCount, cv.GC_INIT_WITH_RECT)
     maskPrime = np.where((mask == 2) | (mask == 0), 0, 1).astype('uint8')
@@ -29,7 +49,7 @@ def noiseReduction(image, iterationCount=6):
     background[np.where((background > [0, 0, 0]).all(axis=2))] = [255, 255, 255]
 
     image += background
-    # plt.imshow(image), plt.colorbar(), plt.show()
+    plt.imshow(image), plt.show()
     return image
 
 
@@ -68,18 +88,21 @@ def findAndCut(image, mode="shirt"):
 
 
 def stitch(one, two):
+    # TODO REMOVE THIS
+    x = two
+    two = one
+    one = x
     prime = cv.resize(one, (two.shape[1], two.shape[0]), interpolation=cv2.INTER_LINEAR)
     prime = np.concatenate((prime, two), axis=0)
     plt.imshow(prime), plt.show()
     return prime
 
+
 def makeImage(photo):
     return cv.imread(photo)
+
 
 # TODO must pass in jpeg
 def saveImage(name):
     cv2.imwrite(f"{name}")
     return cv.imread(name)
-# cv.imshow('new', vis)
-# plt.imshow(vis), plt.show()
-# cv.imwrite('notstylish.jpg', vis)

@@ -1,5 +1,6 @@
 import os
 import pathlib
+from queue import PriorityQueue
 
 from PIL import Image
 import tensorflow as tf
@@ -109,8 +110,8 @@ train_datagen = ImageDataGenerator(rescale=1 / 255.,
 
 valid_datagen = ImageDataGenerator(rescale=1 / 255.)
 
-dirtrain = "/Users/stuar/Desktop/TrainingData/FashionGen/train"
-dirtest = "/Users/stuar/Desktop/TrainingData/FashionGen/test"
+dirtrain = "/Users/stuar/Desktop/TrainingData/squares/train"
+dirtest = "/Users/stuar/Desktop/TrainingData/squares/test"
 
 data_dir = pathlib.Path(dirtrain)
 class_names = np.array(sorted([item.name for item in data_dir.glob('*')]))
@@ -121,8 +122,8 @@ test_data = valid_datagen.flow_from_directory(dirtest, batch_size=30, target_siz
                                               class_mode="categorical")
 
 base = tf.keras.applications.ResNet152(input_shape=(224, 224, 3),
-                                       include_top=False,
-                                       weights='imagenet')
+                                         include_top=False,
+                                         weights='imagenet')
 base.trainable = False
 inputs = tf.keras.Input(shape=(224, 224, 3))
 global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
@@ -130,40 +131,57 @@ global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
 x = base(inputs, training=False)
 x = global_average_layer(x)
 x = tf.keras.layers.Dropout(0.2)(x)
-prediction_layer = tf.keras.layers.Dense(2)(x)
+x = tf.keras.layers.Dense(128)(x)
+x = tf.keras.layers.Dense(64)(x)
+x = tf.keras.layers.Dense(32)(x)
+x = tf.keras.layers.Dense(16)(x)
+prediction_layer = tf.keras.layers.Dense(5)(x)
 outputs = layer.Activation('softmax')(prediction_layer)
 model = tf.keras.Model(inputs, outputs)
 
-model.compile(tf.keras.optimizers.Adam(learning_rate=.0001),
+print(len(train_data))
+model.compile(tf.keras.optimizers.Adam(learning_rate=.001),
               loss=tf.keras.losses.CategoricalCrossentropy(),
               metrics=['accuracy'])
 
-history_1 = model.fit(train_data, epochs=10, steps_per_epoch=len(train_data),
+history_1 = model.fit(train_data, epochs=8, steps_per_epoch=len(train_data),
                       validation_data=test_data, validation_steps=len(test_data))
 
-plot_loss_curves(history_1)
-# plot_loss_curves(history_2)
-# plot_loss_curves(history_3)
-# #
-# Test region
-#
-# TODO GET A PIXEL VALUE FOR THE CENTER OF THE SHIRT AND ONE FOR THE PANTS THEN JUST TRAIN ON THESE
-# TODO ---- WILL RESULT IN US NOT HAVING TO WORRY ABOUT BACKGROUNDS BUT WILL ONLY WORK FOR SOLIDS.
-# TODO ---- BUT A WAY THAT WE COULD MITIGATE THIS IS TO SKIM OVER ALL OF THE ITEM AND ADD ANOTHER COLOR
-#  IF ACCENTS PRESENT OR GET EVERYTHING IN-BETWEEN SLEEVES AND UNDERNEATH COLLAR. SO MAKE IT INTO A RECTANGLE
-#  SO IF SHIRT PICTURE IS A 20X20 THEN GET A 8x5 OF THE SHIRT.
+
+
 results = []
+stripes = []
+contrast = []
+solid = []
+graphics = []
+patterns = []
+
 for filename in os.listdir("clothes/pairs"):
     imag = image.load_img(f"clothes/pairs/{filename}", target_size=(224, 224))
     img_array = image.img_to_array(imag)
     img_batch = np.expand_dims(img_array, 0)
     prediction = model.predict(img_batch)
-    prediction = list(prediction)
-    temp = (filename, prediction[0][0])
-    results.append(temp)
+    contrast.append((prediction[0][0], filename))
+    graphics.append((prediction[0][1], filename))
+    solid.append((prediction[0][2], filename))
+    patterns.append((prediction[0][3], filename))
+    stripes.append((prediction[0][4], filename))
 
-print(results)
 
-results = results.sort(key=lambda w: w[1])
+results = [contrast, graphics, solid, patterns, stripes]
 i = 1
-print(results)
+x = 0
+for r in results:
+    r.sort()
+    print("LEAST LIKELY: ")
+    for z in range(10):
+        print(f"{i}: {class_names[x]} {r.pop(0)}")
+        i += 1
+    r.sort(reverse=True)
+    i = 1
+    print("MOST LIKELY: ")
+    for z in range(10):
+        print(f"{i}: {class_names[x]} {r.pop(0)}")
+        i += 1
+    x += 1
+    i = 1
