@@ -14,7 +14,7 @@ def rescaleImage(frame, scalar=0.4):
     return cv.resize(frame, dim, interpolation=cv.INTER_AREA)
 
 
-def noiseReduction(image, imageName, iterationCount=0):
+def noiseReduction(image, iterationCount=6):
     mask = np.zeros(image.shape[:2], np.uint8)
     background = np.zeros((1, 65), np.float64)
     forground = np.zeros((1, 65), np.float64)
@@ -29,8 +29,8 @@ def noiseReduction(image, imageName, iterationCount=0):
     background[np.where((background > [0, 0, 0]).all(axis=2))] = [255, 255, 255]
 
     image += background
-    plt.imshow(image), plt.colorbar(), plt.show()
-    # cv2.imwrite(f'{imageName}', image)
+    # plt.imshow(image), plt.colorbar(), plt.show()
+    return image
 
 
 # TODO: make a better way to not get tripped up by objects while scanning could make it a
@@ -50,7 +50,6 @@ def findAndCut(image, mode="shirt"):
                     ticker += 1
             # TODO tinker with this percentage value
             if lastIJ != 0 and ticker >= int(x / 3):
-                print(lastIJ)
                 break
         image = image[0:lastIJ, 0:image.shape[1]]
     else:
@@ -68,27 +67,19 @@ def findAndCut(image, mode="shirt"):
     return image
 
 
-shirts = ['IMG_0655.jpg', 'IMG_0663.jpg', 'IMG_0664.jpg']
-toFormat = []
-for shirt in toFormat:
-    shirt_image = cv.imread(shirt)
-    shirt_image = rescaleImage(shirt_image)
-    # cv.imshow('Fashion', shirt_image)
-    noiseReduction(shirt_image, shirt)
+def stitch(one, two):
+    prime = cv.resize(one, (two.shape[1], two.shape[0]), interpolation=cv2.INTER_LINEAR)
+    prime = np.concatenate((prime, two), axis=0)
+    plt.imshow(prime), plt.show()
+    return prime
 
-one = rescaleImage(cv.imread(shirts[0]))
-two = rescaleImage(cv.imread(shirts[2]))
-pants = rescaleImage(cv.imread(shirts[1]))
+def makeImage(photo):
+    return cv.imread(photo)
 
-
-one = findAndCut(two, "shirt")
-plt.imshow(one), plt.show()
-pants = findAndCut(pants, "")
-
-prime = cv.resize(one, (pants.shape[1], pants.shape[0]), interpolation=cv2.INTER_LINEAR)
-
-vis = np.concatenate((prime, pants), axis=0)
-cv.imshow('new', vis)
-plt.imshow(vis), plt.show()
-cv.imwrite('notstylish.jpg', vis)
-
+# TODO must pass in jpeg
+def saveImage(name):
+    cv2.imwrite(f"{name}")
+    return cv.imread(name)
+# cv.imshow('new', vis)
+# plt.imshow(vis), plt.show()
+# cv.imwrite('notstylish.jpg', vis)

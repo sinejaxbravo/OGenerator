@@ -1,3 +1,4 @@
+import os
 import pathlib
 
 from PIL import Image
@@ -17,6 +18,7 @@ from tensorflow.python.keras.layers import Activation
 config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
 session = tf.compat.v1.Session(config=config)
+
 
 # Plot the validation and training data separately
 def plot_loss_curves(history):
@@ -119,8 +121,8 @@ test_data = valid_datagen.flow_from_directory(dirtest, batch_size=30, target_siz
                                               class_mode="categorical")
 
 base = tf.keras.applications.ResNet152(input_shape=(224, 224, 3),
-                                         include_top=False,
-                                         weights='imagenet')
+                                       include_top=False,
+                                       weights='imagenet')
 base.trainable = False
 inputs = tf.keras.Input(shape=(224, 224, 3))
 global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
@@ -132,12 +134,11 @@ prediction_layer = tf.keras.layers.Dense(2)(x)
 outputs = layer.Activation('softmax')(prediction_layer)
 model = tf.keras.Model(inputs, outputs)
 
-print(len(train_data))
 model.compile(tf.keras.optimizers.Adam(learning_rate=.0001),
               loss=tf.keras.losses.CategoricalCrossentropy(),
               metrics=['accuracy'])
 
-history_1 = model.fit(train_data, epochs=5, steps_per_epoch=len(train_data),
+history_1 = model.fit(train_data, epochs=10, steps_per_epoch=len(train_data),
                       validation_data=test_data, validation_steps=len(test_data))
 
 plot_loss_curves(history_1)
@@ -146,15 +147,19 @@ plot_loss_curves(history_1)
 # #
 # Test region
 #
-imag = image.load_img("IMG_0655.jpg", target_size=(224, 224))
-img_array = image.img_to_array(imag)
-img_batch = np.expand_dims(img_array, 0)
-predstyle = model.predict(img_batch)
-imag = image.load_img("IMG_0656.jpg", target_size=(224, 224))
-img_array = image.img_to_array(imag)
-img_batch = np.expand_dims(img_array, 0)
 
-predictionugly = model.predict(img_batch)
+results = []
+for filename in os.listdir("clothes/pairs"):
+    imag = image.load_img(f"clothes/pairs/{filename}", target_size=(224, 224))
+    img_array = image.img_to_array(imag)
+    img_batch = np.expand_dims(img_array, 0)
+    prediction = model.predict(img_batch)
+    prediction = list(prediction)
+    temp = (filename, prediction[0][0])
+    results.append(temp)
 
-print(predstyle)
-print(predictionugly)
+print(results)
+
+results = results.sort(key=lambda w: w[1])
+i = 1
+print(results)
