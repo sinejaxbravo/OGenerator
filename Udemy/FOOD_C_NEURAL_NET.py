@@ -1,5 +1,6 @@
 import pathlib
 
+import keras
 from PIL import Image
 import tensorflow as tf
 import numpy as np
@@ -118,22 +119,37 @@ train_data = train_datagen.flow_from_directory(dirtrain, batch_size=10, target_s
 test_data = valid_datagen.flow_from_directory(dirtest, batch_size=10, target_size=(224, 224), shuffle=True,
                                               class_mode="categorical")
 
-base = tf.keras.applications.ResNet152(input_shape=(224, 224, 3),
-                                         include_top=False,
-                                         weights='resnet')
-base.trainable = False
-inputs = tf.keras.Input(shape=(224, 224, 3))
-global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
+# base = tf.keras.applications.ResNet152(input_shape=(224, 224, 3),
+#                                          include_top=False,
+#                                          weights='resnet')
+# base.trainable = False
+# inputs = tf.keras.Input(shape=(224, 224, 3))
+# global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
+#
+# x = base(inputs, training=False)
+# x = global_average_layer(x)
+# x = tf.keras.layers.Dropout(0.2)(x)
+# prediction_layer = tf.keras.layers.Dense(101)(x)
+# outputs = layer.Activation('softmax')(prediction_layer)
+# model = tf.keras.Model(inputs, outputs)
 
-x = base(inputs, training=False)
-x = global_average_layer(x)
-x = tf.keras.layers.Dropout(0.2)(x)
-prediction_layer = tf.keras.layers.Dense(101)(x)
-outputs = layer.Activation('softmax')(prediction_layer)
-model = tf.keras.Model(inputs, outputs)
+inputL = layer.Input(shape=(224, 224, 3))
+h1 = layer.Dense(30, activation='relu')(inputL)
+h2 = layer.Dense(30, activation='relu')(h1)
+concat = layer.Concatenate()([inputL, h2])
 
-print(len(train_data))
-model.compile(tf.keras.optimizers.Adam(learning_rate=.0001),
+f = layer.Conv2D(30, (3, 3))(concat)
+f = layer.MaxPooling2D((3, 3))(f)
+f = layer.Dropout(.2)(f)
+output = layer.Flatten()(f)
+output = layer.Dense(101)(output)
+output = layer.Activation('softmax')(output)
+aux0 = layer.Flatten()(h2)
+auxO = layer.Dense(101)(aux0)
+auxO = layer.Activation('softmax')(auxO)
+model = keras.Model(inputL, outputs=[output, auxO])
+
+model.compile(tf.keras.optimizers.Adam(learning_rate=.001),
               loss=tf.keras.losses.CategoricalCrossentropy(),
               metrics=['accuracy'])
 
