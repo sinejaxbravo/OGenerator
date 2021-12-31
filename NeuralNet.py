@@ -1,5 +1,6 @@
 import os
 import pathlib
+from collections import Set
 from queue import PriorityQueue
 
 from PIL import Image
@@ -153,6 +154,7 @@ contrast = []
 solid = []
 graphics = []
 patterns = []
+
 
 for filename in os.listdir("clothes/pairs"):
     imag = image.load_img(f"clothes/pairs/{filename}", target_size=(60, 60))
