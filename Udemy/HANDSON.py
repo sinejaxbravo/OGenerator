@@ -1,3 +1,4 @@
+import os
 import pathlib
 
 import keras
@@ -114,6 +115,42 @@ model.compile(tf.keras.optimizers.SGD(),
 history_1 = model.fit(train_data, epochs=20, steps_per_epoch=len(train_data),
                       validation_data=test_data, validation_steps=len(test_data))
 print(history_1.history)
+
+results = []
+stripes = []
+contrast = []
+solid = []
+graphics = []
+patterns = []
+
+for filename in os.listdir("../clothes/pairs"):
+    imag = image.load_img(f"clothes/pairs/{filename}", target_size=(60, 60))
+    img_array = image.img_to_array(imag)
+    img_batch = np.expand_dims(img_array, 0)
+    prediction = model.predict(img_batch)
+    contrast.append((prediction[0][0], filename))
+    graphics.append((prediction[0][1], filename))
+    solid.append((prediction[0][2], filename))
+    patterns.append((prediction[0][3], filename))
+    stripes.append((prediction[0][4], filename))
+
+results = [contrast, graphics, solid, patterns, stripes]
+i = 1
+x = 0
+for r in results:
+    r.sort()
+    print("LEAST LIKELY: ")
+    for z in range(10):
+        print(f"{i}: {class_names[x]} {r.pop(0)}")
+        i += 1
+    r.sort(reverse=True)
+    i = 1
+    print("MOST LIKELY: ")
+    for z in range(10):
+        print(f"{i}: {class_names[x]} {r.pop(0)}")
+        i += 1
+    x += 1
+    i = 1
 
 # f = open("model.txt", "a")
 # f.write("\n\n\n\n\n")
