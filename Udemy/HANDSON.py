@@ -107,7 +107,7 @@ output = layer.Dense(5, activation='softmax')(output)
 
 model = tf.keras.Model(inputs=input, outputs=output)
 
-model.compile(tf.keras.optimizers.Adam(learning_rate=.001),
+model.compile(tf.keras.optimizers.SGD(),
               loss=tf.keras.losses.CategoricalCrossentropy(),
               metrics=['accuracy'])
 

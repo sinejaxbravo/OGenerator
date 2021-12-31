@@ -22,83 +22,47 @@ config.gpu_options.allow_growth = True
 session = tf.compat.v1.Session(config=config)
 
 
-# Plot the validation and training data separately
-def plot_loss_curves(history):
-    """
-  Returns separate loss curves for training and validation metrics.
-  """
-    loss = history.history['loss']
-    val_loss = history.history['val_loss']
-
-    accuracy = history.history['accuracy']
-    val_accuracy = history.history['val_accuracy']
-
-    epochs = range(len(history.history['loss']))
-
-    # Plot loss
-    plt.plot(epochs, loss, label='training_loss')
-    plt.plot(epochs, val_loss, label='val_loss')
-    plt.title('Loss')
-    plt.xlabel('Epochs')
-    plt.legend()
-    plt.show()
-
-    # Plot accuracy
-    plt.figure()
-    plt.plot(epochs, accuracy, label='training_accuracy')
-    plt.plot(epochs, val_accuracy, label='val_accuracy')
-    plt.title('Accuracy')
-    plt.xlabel('Epochs')
-    plt.legend()
-    plt.show()
+def residual(x, filters, k_size=1):
+    xp = layer.Conv2D(filters, kernel_size=k_size, activation='relu', padding='same')(x)
+    xp = layer.BatchNormalization()(xp)
+    xp = layer.Conv2D(filters, kernel_size=k_size, padding='same')(xp)
+    x = layer.Dropout(.2)(x)
+    tot = layer.Add()([x, xp])
+    tot = layer.ReLU()(tot)
+    tot = layer.BatchNormalization()(tot)
+    return tot
 
 
-def predict(image_prediction_path, model_1, prediction_data, name):
-    # Create the image
-    print("Predicting for ", name, "...")
-    for i in range(21):
-        sys.stdout.write('\r')
-        # the exact output you're looking for:
-        sys.stdout.write("[%-20s] %d%%" % ('=' * i, 5 * i))
-        sys.stdout.flush()
-        sleep(0.1)
-    print()
-
-    #
-    # Prints
-    #
-    imag = image.load_img(image_prediction_path, target_size=(224, 224))
-    img_array = image.img_to_array(imag)
-    img_batch = np.expand_dims(img_array, 0)
-
-    prediction = model.predict(img_batch)
-
-    print("Predicting for ", name, " ...")
-    sleep(2)
-    predictedFood = np.array(np.argsort(prediction)[0])
-    predictedFood = predictedFood.tolist()
-
-    print("\nPrediction array: ", predictedFood)
-    for x in range(3):
-        for z in prediction_data.class_indices:
-            if prediction_data.class_indices.get(z) == predictedFood[(len(predictedFood) - 1)]:
-                if x == 0:
-                    print("{}st most likely: ".format(x + 1), z)
-                elif x == 1:
-                    print("{}nd most likely: ".format(x + 1), z)
-                else:
-                    print("{}rd most likely: ".format(x + 1), z)
-                predictedFood.pop()
-                break
-    print("DONE!\n")
-    sleep(2)
+def block_norm(x, filters, kernel, strides):
+    x = layer.ReLU()(x)
+    m = layer.Conv2D(filters=filters, kernel_size=kernel, strides=strides)(x)
+    norm = layer.BatchNormalization()(m)
+    activation = layer.ReLU()(norm)
+    return activation
 
 
-#
-#
-# Start of code
-#
-#
+def block_dense(x, output):
+    x = layer.Dense(output * 2)(x)
+    x = layer.Dense(output * 2)(x)
+    x = layer.Dense(output)(x)
+    return x
+
+
+def sequence_a(x, filt, kernel, stride):
+    x = block_norm(x, filt, kernel, stride)
+    x = residual(x, filt, kernel)
+    return x
+
+
+def concat(x, y):
+    tot = layer.Add()(x)
+    tot = layer.Add()([tot, y])
+    tot = layer.ReLU()(tot)
+    tot = layer.BatchNormalization()(tot)
+    return tot
+
+
+
 
 # tf.random.set_seed(42)
 train_datagen = ImageDataGenerator(rescale=1 / 255.,
@@ -122,30 +86,31 @@ train_data = train_datagen.flow_from_directory(dirtrain, batch_size=30, target_s
 test_data = valid_datagen.flow_from_directory(dirtest, batch_size=30, target_size=(60, 60), shuffle=True,
                                               class_mode="categorical")
 
-base = tf.keras.applications.ResNet152(input_shape=(60, 60, 3),
-                                       include_top=False,
-                                       weights='imagenet')
-base.trainable = False
-inputs = tf.keras.Input(shape=(60, 60, 3))
-global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
+input = layer.Input(shape=(60, 60, 3))
 
-x = base(inputs, training=False)
-x = global_average_layer(x)
-x = tf.keras.layers.Dropout(0.2)(x)
-x = tf.keras.layers.Dense(128)(x)
-x = tf.keras.layers.Dense(64)(x)
-x = tf.keras.layers.Dense(32)(x)
-x = tf.keras.layers.Dense(16)(x)
-prediction_layer = tf.keras.layers.Dense(5)(x)
-outputs = layer.Activation('softmax')(prediction_layer)
-model = tf.keras.Model(inputs, outputs)
+x = layer.Conv2D(filters=32, kernel_size=3, strides=2, padding='same')(input)
+x = layer.BatchNormalization()(x)
+x1 = layer.ReLU()(x)
 
-print(len(train_data))
+x = sequence_a(x1, 64, 7, 1)
+x = concat([block_norm(x, 64, 1, 1), block_norm(x, 64, 1, 1), block_norm(x, 64, 1, 1)], x)
+x = sequence_a(x, 256, 5, 5)
+x = concat([block_norm(x, 256, 1, 1), block_norm(x, 256, 1, 1), block_norm(x, 256, 1, 1)], x)
+x = sequence_a(x, 512, 3, 1)
+x = concat([block_norm(x, 512, 1, 1), block_norm(x, 512, 1, 1), block_norm(x, 512, 1, 1)], x)
+x = sequence_a(x, 1024, 1, 3)
+x = layer.GlobalAveragePooling2D()(x)
+x = layer.Dense(512)(x)
+output = layer.Flatten()(x)
+output = layer.Dense(5, activation='softmax')(output)
+
+model = tf.keras.Model(inputs=input, outputs=output)
+
 model.compile(tf.keras.optimizers.Adam(learning_rate=.001),
               loss=tf.keras.losses.CategoricalCrossentropy(),
               metrics=['accuracy'])
 
-history_1 = model.fit(train_data, epochs=8, steps_per_epoch=len(train_data),
+history_1 = model.fit(train_data, epochs=20, steps_per_epoch=len(train_data),
                       validation_data=test_data, validation_steps=len(test_data))
 
 results = []
