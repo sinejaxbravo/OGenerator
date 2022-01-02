@@ -153,7 +153,7 @@ def predict(model, class_names):
 
 
 def build_CNN():
-    train_datagen = get_datagen("tr")
+    train_datagen = get_datagen("train")
 
     valid_datagen = get_datagen("test")
     data_dir = pathlib.Path(dirtrain)
@@ -191,7 +191,7 @@ def build_CNN():
                   loss=tf.keras.losses.CosineSimilarity(),
                   metrics=['accuracy'])
 
-    history_1 = model.fit(train_data, epochs=3, steps_per_epoch=len(train_data),
+    history_1 = model.fit(train_data, epochs=7, steps_per_epoch=len(train_data),
                           validation_data=test_data, validation_steps=len(test_data))
 
     predict(model, class_names)
@@ -229,52 +229,17 @@ def oldCNN():
     model = tf.keras.Model(inputs, outputs)
 
     print(len(train_data))
-    model.compile(tf.keras.optimizers.Adam(learning_rate=.001),
+    model.compile(tf.keras.optimizers.Adam(learning_rate=.00001),
                   loss=tf.keras.losses.CategoricalCrossentropy(),
                   metrics=['accuracy'])
 
-    history_1 = model.fit(train_data, epochs=7, steps_per_epoch=len(train_data),
+    history_1 = model.fit(train_data, epochs=12, steps_per_epoch=len(train_data),
                           validation_data=test_data, validation_steps=len(test_data))
     predict(model, class_names)
     return model
 
 
 
-
-def transfer_residual():
-    data_dir = pathlib.Path(dir_one)
-    class_names = np.array(sorted([item.name for item in data_dir.glob('*')]))
-    train_datagen = get_datagen("t")
-    train_data = get_directory(dirtrain, train_datagen)
-
-    base = tf.keras.applications.ResNet152(input_shape=(224, 224, 3),
-                                           include_top=False,
-                                           weights='imagenet')
-    base.trainable = False
-    inputs = tf.keras.Input(shape=(224, 224, 3))
-    global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
-
-    x = base(inputs, training=False)
-    x = sequence_a(x, 2048, 1, 1)
-    x = sequence_a(x, 2048, 1, 1)
-    x = layer.Conv2D(filters=128, kernel_size=3, strides=1, padding='same')(x)
-    x = global_average_layer(x)
-    x = tf.keras.layers.Dropout(0.2)(x)
-    x = tf.keras.layers.Dense(128)(x)
-    x = tf.keras.layers.Dense(64)(x)
-    x = tf.keras.layers.Dense(32)(x)
-    x = tf.keras.layers.Dense(1)(x)
-    outputs = layer.Activation('sigmoid')(x)
-    model = tf.keras.Model(inputs, outputs)
-
-    print(len(train_data))
-    model.compile(tf.keras.optimizers.Adam(learning_rate=.001),
-                  loss=tf.keras.losses.CategoricalCrossentropy(from_logits=False),
-                  metrics=['accuracy'])
-
-    history_1 = model.fit(train_data, epochs=8, steps_per_epoch=len(train_data))
-    predict(model, class_names)
-    return model
 
 # build_CNN()
 # oldCNN()
