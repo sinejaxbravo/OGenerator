@@ -9,14 +9,11 @@ import tensorflow as tf
 import numpy as np
 
 from sklearn.cluster import KMeans, DBSCAN
-from sklearn.datasets import make_moons
+from sklearn.neighbors import KNeighborsClassifier, kneighbors_graph
 from tensorflow.keras.preprocessing import image
-from tensorflow.python.keras.applications.resnet import ResNet
-from tensorflow.python.keras.applications.vgg16 import VGG16
 
 from tensorflow.python.keras.models import Model
-from sklearn import metrics
-from sklearn.datasets import make_blobs
+
 from sklearn.preprocessing import StandardScaler
 
 # from sklearn.cluster import KMeans
@@ -48,20 +45,38 @@ def pca(data):
     # print("transform shape: ", x.shape)
 
 
-def kMeans(data, num_clust=5):
-    kmeans = KMeans(n_clusters=num_clust)
-    kmeans.fit(data)
-
-
 def extraction(model, image):
     # print(img.shape)
     feature = model.predict(image, use_multiprocessing=True)
     return feature
 
 
+def get_pair_pred():
+    features = []
+    for filename in os.listdir("clothes/pairs"):
+        imag = image.load_img(f"clothes/pairs/{filename}", target_size=(224, 224))
+        img_array = image.img_to_array(imag)
+        img_batch = np.expand_dims(img_array, 0)
+        prediction = model.predict(img_batch)
+        features.append(prediction)
+    return features
+
+
+def K_Nearest(data):
+    X = StandardScaler().fit_transform(data)
+    knn = KNeighborsClassifier(n_neighbors=50)
+    knn.fit(X)
+    A = kneighbors_graph(data, 2, mode='connectivity', include_self=True)
+
+    for x in get_pair_pred():
+
+        print(knn.kneighbors(x))
+
+
+# min samples means how many assignments there needs to be before something becomes a cluster
 def DB_SCAN(data):
     X = StandardScaler().fit_transform(data)
-    dbscan = DBSCAN(eps=.2, min_samples=5)
+    dbscan = DBSCAN(eps=1.5, min_samples=20)
     dbscan.fit(X)
     core_samples_mask = np.zeros_like(dbscan.labels_, dtype=bool)
     core_samples_mask[dbscan.core_sample_indices_] = True
@@ -82,7 +97,7 @@ def DB_SCAN(data):
             "o",
             markerfacecolor=tuple(col),
             markeredgecolor="k",
-            markersize=14,
+            markersize=4,
         )
 
         xy = X[class_member_mask & ~core_samples_mask]
@@ -92,19 +107,25 @@ def DB_SCAN(data):
             "o",
             markerfacecolor=tuple(col),
             markeredgecolor="k",
-            markersize=6,
+            markersize=2,
         )
 
+    # knn = KNeighborsClassifier(n_neighbors=50)
+    # knn.fit(dbscan.components_, dbscan.labels_[dbscan.core_sample_indices_])
+    # plt.scatter(knn.kneighbors_graph(X))
+
     plt.show()
+    # K_Nearest(dbscan)
 
 
 def model():
     res = NeuralNet.oldCNN()
-    vgg = VGG16()
+    # vgg = VGG16()
     model = res
     model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
     photos = get_photos(dir_large)
     i = 0
+    data = {}
     with progressbar.ProgressBar(max_value=len(photos)) as bar:
         for pic in photos:
             bar.update(i)
@@ -121,6 +142,7 @@ def model():
     feats = feats.reshape((feats.shape[0], feats.shape[2]))
     print("Shape of our features for now: ", feats.shape)
     DB_SCAN(feats)
+    K_Nearest(feats)
 
 
 model()

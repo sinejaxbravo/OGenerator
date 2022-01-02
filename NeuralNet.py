@@ -23,6 +23,8 @@ session = tf.compat.v1.Session(config=config)
 
 dirtrain = "/Users/stuar/Desktop/TrainingData/squares/train"
 dirtest = "/Users/stuar/Desktop/TrainingData/squares/test"
+dir_large = "/Users/stuar/Desktop/TrainingData/unsupervised"
+dir_one = "/Users/stuar/Desktop/TrainingData/unsup"
 
 
 
@@ -44,6 +46,11 @@ def block_norm(x, filters, kernel, strides):
     norm = layer.BatchNormalization()(m)
     activation = layer.ReLU()(norm)
     return activation
+
+
+# def block_pool(x, filters):
+#     x =layer.ReLU()(x)
+#     x =
 
 
 def block_dense(x, output):
@@ -81,7 +88,7 @@ def get_datagen(train_test):
                                   width_shift_range=0.3,
                                   height_shift_range=0.3,
                                   horizontal_flip=True)
-    elif train_test == "test":
+    else:
         return ImageDataGenerator(rescale=1 / 255.)
 
 
@@ -146,7 +153,6 @@ def predict(model, class_names):
 
 
 def build_CNN():
-
     train_datagen = get_datagen("train")
 
     valid_datagen = get_datagen("test")
@@ -181,8 +187,8 @@ def build_CNN():
 
     model = tf.keras.Model(inputs=input, outputs=output)
 
-    model.compile(tf.keras.optimizers.Adam(learning_rate=.0001),
-                  loss=tf.keras.losses.CategoricalCrossentropy(),
+    model.compile(tf.keras.optimizers.Adam(learning_rate=.001),
+                  loss=tf.keras.losses.CosineSimilarity(),
                   metrics=['accuracy'])
 
     history_1 = model.fit(train_data, epochs=3, steps_per_epoch=len(train_data),
@@ -207,16 +213,19 @@ def oldCNN():
     inputs = tf.keras.Input(shape=(224, 224, 3))
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
 
-    x = base(inputs, training=False)
+    x1 = base(inputs, training=False)
+    x = sequence_a(x1, 2048, 1, 1)
+    x = sequence_a(x, 2048, 1, 1)
+    x = layer.Conv2D(filters=128, kernel_size=3, strides=1, padding='same')(x)
+    x = layer.Add()([x, x1])
     x = global_average_layer(x)
     x = tf.keras.layers.Dropout(0.2)(x)
     x = tf.keras.layers.Dense(128)(x)
     x = tf.keras.layers.Dense(64)(x)
     x = tf.keras.layers.Dense(32)(x)
     x = tf.keras.layers.Dense(16)(x)
-
-    prediction_layer = tf.keras.layers.Dense(5)(x)
-    outputs = layer.Activation('softmax')(prediction_layer)
+    x = tf.keras.layers.Dense(5)(x)
+    outputs = layer.Activation('softmax')(x)
     model = tf.keras.Model(inputs, outputs)
 
     print(len(train_data))
@@ -224,10 +233,48 @@ def oldCNN():
                   loss=tf.keras.losses.CategoricalCrossentropy(),
                   metrics=['accuracy'])
 
-    history_1 = model.fit(train_data, epochs=10, steps_per_epoch=len(train_data),
+    history_1 = model.fit(train_data, epochs=8, steps_per_epoch=len(train_data),
                           validation_data=test_data, validation_steps=len(test_data))
+    predict(model, class_names)
     return model
-    # predict(model, class_names)
+
+
+
+
+def transfer_residual():
+    data_dir = pathlib.Path(dir_one)
+    class_names = np.array(sorted([item.name for item in data_dir.glob('*')]))
+    train_datagen = get_datagen("t")
+    train_data = get_directory(dirtrain, train_datagen)
+
+    base = tf.keras.applications.ResNet152(input_shape=(224, 224, 3),
+                                           include_top=False,
+                                           weights='imagenet')
+    base.trainable = False
+    inputs = tf.keras.Input(shape=(224, 224, 3))
+    global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
+
+    x = base(inputs, training=False)
+    x = sequence_a(x, 2048, 1, 1)
+    x = sequence_a(x, 2048, 1, 1)
+    x = layer.Conv2D(filters=128, kernel_size=3, strides=1, padding='same')(x)
+    x = global_average_layer(x)
+    x = tf.keras.layers.Dropout(0.2)(x)
+    x = tf.keras.layers.Dense(128)(x)
+    x = tf.keras.layers.Dense(64)(x)
+    x = tf.keras.layers.Dense(32)(x)
+    x = tf.keras.layers.Dense(1)(x)
+    outputs = layer.Activation('sigmoid')(x)
+    model = tf.keras.Model(inputs, outputs)
+
+    print(len(train_data))
+    model.compile(tf.keras.optimizers.Adam(learning_rate=.001),
+                  loss=tf.keras.losses.CategoricalCrossentropy(from_logits=False),
+                  metrics=['accuracy'])
+
+    history_1 = model.fit(train_data, epochs=8, steps_per_epoch=len(train_data))
+    predict(model, class_names)
+    return model
 
 # build_CNN()
 # oldCNN()
