@@ -8,7 +8,7 @@ import progressbar
 import tensorflow as tf
 import numpy as np
 
-from sklearn.cluster import KMeans, DBSCAN
+from sklearn.cluster import KMeans, DBSCAN, MeanShift, OPTICS, AffinityPropagation
 from sklearn.neighbors import KNeighborsClassifier, kneighbors_graph, NearestNeighbors
 from tensorflow.keras.preprocessing import image
 
@@ -25,7 +25,76 @@ dir_large = "/Users/stuar/Desktop/TrainingData/unsupervised"
 dir_small = "/Users/stuar/Desktop/TrainingData/unsupervised_small"
 
 
-# kmeans = KMeans(num_clusters=6, init=)
+
+def Affinity(data):
+    X = StandardScaler().fit_transform(data)
+    model = AffinityPropagation(damping=0.9)
+    # fit the model
+    model.fit(X)
+    # assign a cluster to each example
+    yhat = model.predict(X)
+    # retrieve unique clusters
+    clusters = np.unique(yhat)
+    # create scatter plot for samples from each cluster
+    for cluster in clusters:
+        # get row indexes for samples with this cluster
+        row_ix = np.where(yhat == cluster)
+        # create scatter of these samples
+        plt.scatter(X[row_ix, 0], X[row_ix, 1])
+    # show the plot
+    plt.show()
+
+def Optics(data):
+    X = StandardScaler().fit_transform(data)
+    model = OPTICS(eps=0.8, min_samples=10)
+    # fit model and predict clusters
+    yhat = model.fit_predict(X)
+    # retrieve unique clusters
+    clusters = np.unique(yhat)
+    # create scatter plot for samples from each cluster
+    for cluster in clusters:
+        # get row indexes for samples with this cluster
+        row_ix = np.where(yhat == cluster)
+        # create scatter of these samples
+        plt.scatter(X[row_ix, 0], X[row_ix, 1])
+    # show the plot
+    plt.show()
+
+
+def Mean_Shift(data):
+    X = StandardScaler().fit_transform(data)
+    model = MeanShift()
+    # fit model and predict clusters
+    yhat = model.fit_predict(X)
+    # retrieve unique clusters
+    clusters = np.unique(yhat)
+    # create scatter plot for samples from each cluster
+    for cluster in clusters:
+        # get row indexes for samples with this cluster
+        row_ix = np.where(yhat == cluster)
+        # create scatter of these samples
+        plt.scatter(X[row_ix, 0], X[row_ix, 1])
+    # show the plot
+    plt.show()
+
+
+def K_Means(data):
+    X = StandardScaler().fit_transform(data)
+    model = KMeans(n_clusters=2)
+    # fit the model
+    model.fit(X)
+    # assign a cluster to each example
+    yhat = model.predict(X)
+    # retrieve unique clusters
+    clusters = np.unique(yhat)
+    # create scatter plot for samples from each cluster
+    for cluster in clusters:
+        # get row indexes for samples with this cluster
+        row_ix = np.where(yhat == cluster)
+        # create scatter of these samples
+        plt.scatter(X[row_ix, 0], X[row_ix, 1])
+    # show the plot
+    plt.show()
 
 
 def get_photos(directory):
@@ -64,53 +133,30 @@ def get_pair_pred(model):
 
 def K_Nearest(data, model):
     X = StandardScaler().fit_transform(data)
-    nbrs = NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(X)
+    nbrs = NearestNeighbors(n_neighbors=8, algorithm='ball_tree').fit(X)
     # knn = KNeighborsClassifier(n_neighbors=50)
-    nbrs.kneighbors_graph()
-    A = kneighbors_graph(X, 2, mode='connectivity', include_self=True)
+    A = kneighbors_graph(X, 8, mode='connectivity', include_self=True)
 
     for x in get_pair_pred(model):
-
         print(nbrs.kneighbors(x))
-    plt.scatter(A), plt.show()
+    # plt.scatter(A), plt.show()
 
 
 # min samples means how many assignments there needs to be before something becomes a cluster
 def DB_SCAN(data):
     X = StandardScaler().fit_transform(data)
-    dbscan = DBSCAN(eps=1.5, min_samples=20)
-    dbscan.fit(X)
-    core_samples_mask = np.zeros_like(dbscan.labels_, dtype=bool)
-    core_samples_mask[dbscan.core_sample_indices_] = True
-    labels = dbscan.labels_
-    unique_labels = set(dbscan.labels_)
-    colors = [plt.cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
-    for k, col in zip(unique_labels, colors):
-        if k == -1:
-            # Black used for noise.
-            col = [0, 0, 0, 1]
-
-        class_member_mask = labels == k
-
-        xy = X[class_member_mask & core_samples_mask]
-        plt.plot(
-            xy[:, 0],
-            xy[:, 1],
-            "o",
-            markerfacecolor=tuple(col),
-            markeredgecolor="k",
-            markersize=4,
-        )
-
-        xy = X[class_member_mask & ~core_samples_mask]
-        plt.plot(
-            xy[:, 0],
-            xy[:, 1],
-            "o",
-            markerfacecolor=tuple(col),
-            markeredgecolor="k",
-            markersize=2,
-        )
+    dbscan = DBSCAN(eps=.5, min_samples=3)
+    model = dbscan.fit(X)
+    yhat = dbscan.fit_predict(X)
+    # retrieve unique clusters
+    clusters = np.unique(yhat)
+    # create scatter plot for samples from each cluster
+    for cluster in clusters:
+        # get row indexes for samples with this cluster
+        row_ix = np.where(yhat == cluster)
+        # create scatter of these samples
+        plt.scatter(X[row_ix, 0], X[row_ix, 1])
+    # show the plot
 
     # knn = KNeighborsClassifier(n_neighbors=50)
     # knn.fit(dbscan.components_, dbscan.labels_[dbscan.core_sample_indices_])
@@ -125,7 +171,7 @@ def model():
     # vgg = VGG16()
     model = res
     model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
-    photos = get_photos(dir_small)
+    photos = get_photos(dir_large)
     i = 0
     data = {}
     with progressbar.ProgressBar(max_value=len(photos)) as bar:
@@ -143,7 +189,11 @@ def model():
     feats = np.array(list(data.values()))
     feats = feats.reshape((feats.shape[0], feats.shape[2]))
     print("Shape of our features for now: ", feats.shape)
-    DB_SCAN(feats)
+    # DB_SCAN(feats)
+    # Mean_Shift(feats)
+    Affinity(feats)
+    Optics(feats)
+    # K_Nearest(feats)
     K_Nearest(feats, model)
 
 

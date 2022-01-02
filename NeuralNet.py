@@ -153,7 +153,7 @@ def predict(model, class_names):
 
 
 def build_CNN():
-    train_datagen = get_datagen("train")
+    train_datagen = get_datagen("tr")
 
     valid_datagen = get_datagen("test")
     data_dir = pathlib.Path(dirtrain)
@@ -200,7 +200,7 @@ def build_CNN():
 def oldCNN():
     data_dir = pathlib.Path(dirtrain)
     class_names = np.array(sorted([item.name for item in data_dir.glob('*')]))
-    train_datagen = get_datagen("train")
+    train_datagen = get_datagen("tin")
     valid_datagen = get_datagen("test")
 
     train_data = get_directory(dirtrain, train_datagen)
@@ -214,11 +214,12 @@ def oldCNN():
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
 
     x1 = base(inputs, training=False)
-    x = sequence_a(x1, 2048, 1, 1)
-    x = layer.Conv2D(filters=1024, kernel_size=3, strides=1, padding='same')(x)
-    x = sequence_a(x, 1024, 1, 1)
+    x = layer.Conv2D(filters=256, kernel_size=3, strides=1, padding='same')(x1)
+    x = sequence_a(x, 256, 1, 1)
     x = layer.Conv2D(filters=128, kernel_size=3, strides=1, padding='same')(x)
     x = sequence_a(x, 128, 1, 1)
+    x = layer.Conv2D(filters=64, kernel_size=3, strides=1, padding='same')(x)
+    x = sequence_a(x, 64, 1, 1)
     x = global_average_layer(x)
     x = tf.keras.layers.Dropout(0.2)(x)
     x = tf.keras.layers.Dense(1024)(x)
@@ -232,7 +233,7 @@ def oldCNN():
                   loss=tf.keras.losses.CategoricalCrossentropy(),
                   metrics=['accuracy'])
 
-    history_1 = model.fit(train_data, epochs=8, steps_per_epoch=len(train_data),
+    history_1 = model.fit(train_data, epochs=7, steps_per_epoch=len(train_data),
                           validation_data=test_data, validation_steps=len(test_data))
     predict(model, class_names)
     return model
