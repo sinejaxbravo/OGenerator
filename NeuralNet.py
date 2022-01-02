@@ -215,9 +215,11 @@ def oldCNN():
 
     x1 = base(inputs, training=False)
     x = sequence_a(x1, 2048, 1, 1)
-    x = sequence_a(x, 2048, 1, 1)
+    x = layer.Conv2D(filters=256, kernel_size=3, strides=1, padding='same')(x)
+    x = sequence_a(x, 256, 1, 1)
     x = layer.Conv2D(filters=128, kernel_size=3, strides=1, padding='same')(x)
-    x = layer.Add()([x, x1])
+    x = sequence_a(x, 128, 1, 1)
+    # x = layer.Add()([x, x1])
     x = global_average_layer(x)
     x = tf.keras.layers.Dropout(0.2)(x)
     x = tf.keras.layers.Dense(128)(x)

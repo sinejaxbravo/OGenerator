@@ -9,7 +9,7 @@ import tensorflow as tf
 import numpy as np
 
 from sklearn.cluster import KMeans, DBSCAN
-from sklearn.neighbors import KNeighborsClassifier, kneighbors_graph
+from sklearn.neighbors import KNeighborsClassifier, kneighbors_graph, NearestNeighbors
 from tensorflow.keras.preprocessing import image
 
 from tensorflow.python.keras.models import Model
@@ -51,7 +51,7 @@ def extraction(model, image):
     return feature
 
 
-def get_pair_pred():
+def get_pair_pred(model):
     features = []
     for filename in os.listdir("clothes/pairs"):
         imag = image.load_img(f"clothes/pairs/{filename}", target_size=(224, 224))
@@ -62,15 +62,17 @@ def get_pair_pred():
     return features
 
 
-def K_Nearest(data):
+def K_Nearest(data, model):
     X = StandardScaler().fit_transform(data)
-    knn = KNeighborsClassifier(n_neighbors=50)
-    knn.fit(X)
-    A = kneighbors_graph(data, 2, mode='connectivity', include_self=True)
+    nbrs = NearestNeighbors(n_neighbors=2, algorithm='ball_tree').fit(X)
+    # knn = KNeighborsClassifier(n_neighbors=50)
+    nbrs.kneighbors_graph()
+    A = kneighbors_graph(X, 2, mode='connectivity', include_self=True)
 
-    for x in get_pair_pred():
+    for x in get_pair_pred(model):
 
-        print(knn.kneighbors(x))
+        print(nbrs.kneighbors(x))
+    plt.scatter(A), plt.show()
 
 
 # min samples means how many assignments there needs to be before something becomes a cluster
@@ -123,7 +125,7 @@ def model():
     # vgg = VGG16()
     model = res
     model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
-    photos = get_photos(dir_large)
+    photos = get_photos(dir_small)
     i = 0
     data = {}
     with progressbar.ProgressBar(max_value=len(photos)) as bar:
@@ -142,7 +144,7 @@ def model():
     feats = feats.reshape((feats.shape[0], feats.shape[2]))
     print("Shape of our features for now: ", feats.shape)
     DB_SCAN(feats)
-    K_Nearest(feats)
+    K_Nearest(feats, model)
 
 
 model()
