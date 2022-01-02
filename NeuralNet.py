@@ -233,7 +233,7 @@ def oldCNN():
                   loss=tf.keras.losses.CategoricalCrossentropy(),
                   metrics=['accuracy'])
 
-    history_1 = model.fit(train_data, epochs=12, steps_per_epoch=len(train_data),
+    history_1 = model.fit(train_data, epochs=10, steps_per_epoch=len(train_data),
                           validation_data=test_data, validation_steps=len(test_data))
     predict(model, class_names)
     return model
