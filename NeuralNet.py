@@ -214,9 +214,9 @@ def build_CNN():
 
 
 def scheduler(epoch, lr):
-    if epoch < 5:
+    if epoch < 3:
         return lr
-    elif epoch < 12:
+    elif epoch < 6:
         return .001
     else:
         return lr * tf.math.exp(-0.005)
@@ -240,19 +240,20 @@ def oldCNN():
 
     # TODO tune the kernel size of the convolutional layers
     x = base(inputs, training=False)
-    x = layer.Conv2D(filters=64, kernel_size=9, strides=3, padding='same')(x)
+    x = layer.Conv2D(filters=64, kernel_size=7, strides=2, padding='same')(x)
     # x = incept(x, 64)
     x = sequence_a(x, 64, 1, 1)
-    x = layer.Conv2D(filters=128, kernel_size=5, strides=2, padding='same')(x)
+    x = layer.Conv2D(filters=128, kernel_size=3, strides=1, padding='same')(x)
     x = sequence_a(x, 128, 1, 1)
     x = layer.Conv2D(filters=256, kernel_size=1, strides=1, padding='same')(x)
     x = sequence_a(x, 256, 1, 1)
     x = global_average_layer(x)
     x = layer.Flatten()(x)
-    x = tf.keras.layers.Dense(4096)(x)
+    x = tf.keras.layers.Dense(2048)(x)
     x = tf.keras.layers.Dropout(0.5)(x)
-    x = tf.keras.layers.Dense(1000)(x)
-    x = tf.keras.layers.Dropout(0.5)(x)
+    x = tf.keras.layers.Dense(2048)(x)
+    x = tf.keras.layers.Dropout(0.3)(x)
+
     x = tf.keras.layers.Dense(2)(x)
     outputs = layer.Activation('sigmoid')(x)
     model = tf.keras.Model(inputs, outputs)
