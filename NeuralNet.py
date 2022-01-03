@@ -1,6 +1,5 @@
 import os
 import pathlib
-from collections import Set
 from queue import PriorityQueue
 
 from PIL import Image
@@ -214,11 +213,13 @@ def oldCNN():
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
 
     x1 = base(inputs, training=False)
+    x = layer.Conv2D(filters=512, kernel_size=7, strides=2, padding='same')(x1)
+    x = sequence_a(x, 512, 1, 1)
     x = layer.Conv2D(filters=256, kernel_size=3, strides=1, padding='same')(x1)
     x = sequence_a(x, 256, 1, 1)
     x = layer.Conv2D(filters=128, kernel_size=3, strides=1, padding='same')(x)
     x = sequence_a(x, 128, 1, 1)
-    x = layer.Conv2D(filters=64, kernel_size=3, strides=1, padding='same')(x)
+    x = layer.Conv2D(filters=64, kernel_size=1, strides=1, padding='same')(x)
     x = sequence_a(x, 64, 1, 1)
     x = global_average_layer(x)
     x = tf.keras.layers.Dropout(0.2)(x)
@@ -229,13 +230,13 @@ def oldCNN():
     model = tf.keras.Model(inputs, outputs)
 
     print(len(train_data))
-    model.compile(tf.keras.optimizers.Adam(learning_rate=.00001),
+    model.compile(tf.keras.optimizers.Adam(learning_rate=.0001),
                   loss=tf.keras.losses.CategoricalCrossentropy(),
                   metrics=['accuracy'])
 
     history_1 = model.fit(train_data, epochs=10, steps_per_epoch=len(train_data),
                           validation_data=test_data, validation_steps=len(test_data))
-    predict(model, class_names)
+    # predict(model, class_names)
     return model
 
 

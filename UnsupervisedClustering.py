@@ -40,7 +40,7 @@ not_fash = ["./clothes/pairs/2.jpg", "./clothes/pairs/21.jpg",
         "./clothes/pairs/178.jpg","./clothes/pairs/181.jpg"]
 
 
-def Affinity(data, labels, title="Affinity"):
+def Affinity(data, labels, mode="x", title="Affinity"):
 
     X = StandardScaler().fit_transform(data)
     model = AffinityPropagation(damping=0.9, random_state=None)
@@ -52,32 +52,28 @@ def Affinity(data, labels, title="Affinity"):
     clusters = np.unique(yhat)
     print("AFFINITY:")
     print(clusters)
-
-    for i in range(X.shape[0]):
-        if labels[i] in fash:
-            print("FASH SET--", labels[i])
-            print(X[i, 0], X[i, 1], "\n")
-        elif labels[i] in not_fash:
-            print("NOT FASH SET--", labels[i])
-            print(X[i, 0], X[i, 1], "\n")
+    if mode != "x":
+        for i in range(X.shape[0]):
+            if labels[i] in fash:
+                plt.scatter(X[i, 0], X[i, 1], c="red")
+                print("FASH SET--", labels[i])
+                print(X[i, 0], X[i, 1], "\n")
+            elif labels[i] in not_fash and mode == "u":
+                plt.scatter(X[i, 0], X[i, 1], c="yellow")
+                print("NOT FASH SET--", labels[i])
+                print(X[i, 0], X[i, 1], "\n")
 
     i = 0
-    # create scatter plot for samples from each cluster
-    for cluster in clusters:
-        # get row indexes for samples with this cluster
-        print(labels[i])
-        print(X[i], "\n\n")
-
-        row_ix = np.where(yhat == cluster)
-        # create scatter of these samples
-        if labels[i] in fash:
-            plt.scatter(X[row_ix, 0], X[row_ix, 1], c="red")
-        elif labels[i] in not_fash:
-            plt.scatter(X[row_ix, 0], X[row_ix, 1], c="black")
-        else:
-            plt.scatter(X[row_ix, 0], X[row_ix, 1], c="blue")
-        print(X[row_ix, 0], X[row_ix, 1], "\n")
-        i += 1
+    if mode == "x":
+        for cluster in clusters:
+            print(labels[i])
+            print(X[i], "\n\n")
+            i += 1
+            # get row indexes for samples with this cluster
+            row_ix = np.where(yhat == cluster)
+            # create scatter of these samples
+            plt.scatter(X[row_ix, 0], X[row_ix, 1])
+            print(X[row_ix, 0], X[row_ix, 1], "\n")
     # show the plot
     plt.title(f"{title}")
     plt.show()
@@ -176,9 +172,10 @@ def K_Nearest(data, model):
 
 
 # min samples means how many assignments there needs to be before something becomes a cluster
-def DB_SCAN(data, labels, title="DB SCAN"):
+def DB_SCAN(data, labels, mode="x", title="DB SCAN"):
     X = StandardScaler().fit_transform(data)
-    dbscan = DBSCAN(eps=.5, min_samples=3)
+    print(X.shape[1], X.shape[0])
+    dbscan = DBSCAN(eps=1, min_samples=20)
     model = dbscan.fit(X)
     yhat = dbscan.fit_predict(X)
     # retrieve unique clusters
@@ -186,29 +183,28 @@ def DB_SCAN(data, labels, title="DB SCAN"):
     print("DB_SCAN:")
     print(clusters)
     # create scatter plot for samples from each cluster
-    for i in range(X.shape[0]):
-        if labels[i] in fash:
-            print("FASH SET--", labels[i])
-            print(X[i, 0], X[i, 1], "\n")
-        elif labels[i] in not_fash:
-            print("NOT FASH SET--", labels[i])
-            print(X[i, 0], X[i, 1], "\n")
+    if mode != "x":
+        for i in range(X.shape[0]):
+            if labels[i] in fash:
+                plt.scatter(X[i, 0], X[i, 1], c="red")
+                print("FASH SET--", labels[i])
+                print(X[i, 0], X[i, 1], "\n")
+            elif labels[i] in not_fash and mode == "u":
+                plt.scatter(X[i, 0], X[i, 1], c="yellow")
+                print("NOT FASH SET--", labels[i])
+                print(X[i, 0], X[i, 1], "\n")
 
     i = 0
-    for cluster in clusters:
-        print(labels[i])
-        print(X[i], "\n\n")
-        i += 1
-        # get row indexes for samples with this cluster
-        row_ix = np.where(yhat == cluster)
-        # create scatter of these samples
-        if labels[i] in fash:
-            plt.scatter(X[row_ix, 0], X[row_ix, 1], c="red")
-        elif labels[i] in not_fash:
-            plt.scatter(X[row_ix, 0], X[row_ix, 1], c="black")
-        else:
-            plt.scatter(X[row_ix, 0], X[row_ix, 1], c="blue")
-        print(X[row_ix, 0], X[row_ix, 1], "\n")
+    if mode == "x":
+        for cluster in clusters:
+            print(labels[i])
+            print(X[i], "\n\n")
+            i += 1
+            # get row indexes for samples with this cluster
+            row_ix = np.where(yhat == cluster)
+            # create scatter of these samples
+            plt.scatter(X[row_ix, 0], X[row_ix, 1])
+            print(X[row_ix, 0], X[row_ix, 1], "\n")
     # show the plot
 
     # knn = KNeighborsClassifier(n_neighbors=50)
@@ -233,20 +229,23 @@ def get_pred_photos(directory):
     return photo_list
 
 
-def pred_features_lists(directory, model):
+def features_lists(directory, model):
     data = {}
-    for pic in directory:
-
-        imag = image.load_img(pic, target_size=(224, 224))
-        img_array = image.img_to_array(imag)
-        img_batch = np.expand_dims(img_array, 0)
-        extract = extraction(model, img_batch)
-        data[pic] = extract
-
-    names = np.array(list(data.keys()))
-    feats = np.array(list(data.values()))
-    feats = feats.reshape((feats.shape[0], feats.shape[2]))
-    return names, feats
+    i = 0
+    with progressbar.ProgressBar(max_value=len(directory)) as bar:
+        for pic in directory:
+            bar.update(i)
+            time.sleep(.02)
+            imag = image.load_img(pic, target_size=(224, 224))
+            img_array = image.img_to_array(imag)
+            img_batch = np.expand_dims(img_array, 0)
+            extract = extraction(model, img_batch)
+            data[pic] = extract
+            i += 1
+        names = np.array(list(data.keys()))
+        feats = np.array(list(data.values()))
+        feats = feats.reshape((feats.shape[0], feats.shape[2]))
+        return names, feats
 
 
 def extraction(model, image):
@@ -296,36 +295,42 @@ def model():
     model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
     photos = get_photos(dir_small)
     pairs = get_pred_photos(dir_pred)
-    pairs, pair_feats = pred_features_lists(pairs, model)
+    pairs = pairs + photos
+    pairs, pair_feats = features_lists(pairs, model)
     DB_SCAN(pair_feats, pairs)
+    DB_SCAN(pair_feats, pairs, "m")
+    DB_SCAN(pair_feats, pairs, "u")
     # Mean_Shift(pair_feats, pairs)
     Affinity(pair_feats, pairs)
-
-    pairsN, pair_featsN = good_bad_outfits(model, not_fash)
-    pairs, pair_feats = good_bad_outfits(model, fash)
-    DB_SCAN(pair_feats, pairs, "Liked DB Scan")
-    DB_SCAN(pair_featsN, pairsN, "Not Liked DB Scan")
-    # Mean_Shift(pair_feats, pairs)
-    Affinity(pair_feats, pairs, "Liked Affinity")
+    Affinity(pair_feats, pairs, "m")
+    Affinity(pair_feats, pairs, "u")
 
 
-    # Mean_Shift(pair_feats, pairs)
-    Affinity(pair_featsN, pairsN, "Not Liked Affinity")
-    Optics(pair_feats, pairs)
-    Optics(pair_featsN, pairsN)
+    # pairsN, pair_featsN = good_bad_outfits(model, not_fash)
+    # pairs, pair_feats = good_bad_outfits(model, fash)
+    # DB_SCAN(pair_feats, pairs, "Liked DB Scan")
+    # DB_SCAN(pair_featsN, pairsN, "Not Liked DB Scan")
+    # # Mean_Shift(pair_feats, pairs)
+    # Affinity(pair_feats, pairs, "Liked Affinity")
+    #
+    #
+    # # Mean_Shift(pair_feats, pairs)
+    # Affinity(pair_featsN, pairsN, "Not Liked Affinity")
+    # Optics(pair_feats, pairs)
+    # Optics(pair_featsN, pairsN)
     # K_Nearest(pair_feats, model)
-    i = 0
-    data = {}
-    with progressbar.ProgressBar(max_value=len(photos)) as bar:
-        for pic in photos:
-            bar.update(i)
-            time.sleep(.02)
-            imag = image.load_img(pic, target_size=(224, 224))
-            img_array = image.img_to_array(imag)
-            img_batch = np.expand_dims(img_array, 0)
-            extract = extraction(model, img_batch)
-            data[pic] = extract
-            i += 1
+    # i = 0
+    # data = {}
+    # with progressbar.ProgressBar(max_value=len(photos)) as bar:
+    #     for pic in photos:
+    #         bar.update(i)
+    #         time.sleep(.02)
+    #         imag = image.load_img(pic, target_size=(224, 224))
+    #         img_array = image.img_to_array(imag)
+    #         img_batch = np.expand_dims(img_array, 0)
+    #         extract = extraction(model, img_batch)
+    #         data[pic] = extract
+    #         i += 1
 
     # names = np.array(list(data.keys()))
     # feats = np.array(list(data.values()))
