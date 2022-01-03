@@ -51,6 +51,29 @@ def block_norm(x, filters, kernel, strides):
 #     x =
 
 
+def incept(x, filters):
+    # x = layer.Conv2D(filters=filters, kernel_size=7)(x)
+
+    x1 = layer.Conv2D(filters=filters, kernel_size=1, strides=1, activation="relu", padding="same")(x)
+    x1 = layer.Conv2D(filters=filters, kernel_size=3, strides=1, activation="relu", padding="same")(x1)
+    x1 = layer.Conv2D(filters=filters, kernel_size=3, strides=1, activation="relu", padding="same")(x1)
+
+    x2 = layer.Conv2D(filters=filters, kernel_size=1, strides=1, activation="relu", padding="same")(x)
+    x2 = layer.Conv2D(filters=filters, kernel_size=3, strides=1, activation="relu", padding="same")(x2)
+
+    x3 = layer.Conv2D(filters=filters, kernel_size=1, strides=1, activation="relu", padding="same")(x)
+
+    x4 = layer.Conv2D(filters=filters, kernel_size=1, strides=1, activation="relu", padding="same")(x)
+
+    x = layer.Add()([x1, x2, x3, x4])
+    x = layer.AveragePooling2D(filters, padding="same")(x)
+    return x
+
+
+
+
+
+
 def block_dense(x, output):
     x = layer.Dense(output * 2)(x)
     x = layer.Dense(output * 2)(x)
@@ -172,7 +195,7 @@ def build_CNN():
     # x = concat([block_norm(x, 32, 1, 1), block_norm(x, 32, 1, 1), block_norm(x, 32, 1, 1)], x)
 
     # x = concat([block_norm(x, 64, 1, 1), block_norm(x, 64, 1, 1), block_norm(x, 64, 1, 1)], x)
-    x = layer.Flatten()(x)
+
     x = layer.Dense(1024)(x)
     x = layer.Dense(1000)(x)
 
@@ -193,8 +216,10 @@ def build_CNN():
 def scheduler(epoch, lr):
     if epoch < 5:
         return lr
+    elif epoch < 12:
+        return .001
     else:
-        return lr * tf.math.exp(-0.1)
+        return lr * tf.math.exp(-0.005)
 
 
 def oldCNN():
@@ -213,39 +238,38 @@ def oldCNN():
     inputs = tf.keras.Input(shape=(224, 224, 3))
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
 
+    # TODO tune the kernel size of the convolutional layers
     x = base(inputs, training=False)
-    x = layer.Conv2D(filters=64, kernel_size=7, strides=2, padding='same')(x)
+    x = layer.Conv2D(filters=64, kernel_size=9, strides=3, padding='same')(x)
+    # x = incept(x, 64)
     x = sequence_a(x, 64, 1, 1)
-    x = layer.Conv2D(filters=128, kernel_size=3, strides=1, padding='same')(x)
+    x = layer.Conv2D(filters=128, kernel_size=5, strides=2, padding='same')(x)
     x = sequence_a(x, 128, 1, 1)
     x = layer.Conv2D(filters=256, kernel_size=1, strides=1, padding='same')(x)
     x = sequence_a(x, 256, 1, 1)
     x = global_average_layer(x)
+    x = layer.Flatten()(x)
+    x = tf.keras.layers.Dense(4096)(x)
     x = tf.keras.layers.Dropout(0.5)(x)
-    x = tf.keras.layers.Dense(1024)(x)
+    x = tf.keras.layers.Dense(4096)(x)
+    x = tf.keras.layers.Dropout(0.5)(x)
+    x = tf.keras.layers.Dense(1000)(x)
     x = tf.keras.layers.Dropout(0.3)(x)
-    x = tf.keras.layers.Dense(1024)(x)
-    x = tf.keras.layers.Dropout(0.3)(x)
-    x = tf.keras.layers.Dense(512)(x)
-    x = tf.keras.layers.Dropout(0.2)(x)
-    x = tf.keras.layers.Dense(256)(x)
-    x = tf.keras.layers.Dropout(0.4)(x)
-    x = tf.keras.layers.Dense(128)(x)
     x = tf.keras.layers.Dense(2)(x)
     outputs = layer.Activation('sigmoid')(x)
     model = tf.keras.Model(inputs, outputs)
 
     callback1 = tf.keras.callbacks.EarlyStopping(
-        monitor='val_loss', patience=30,
+        monitor='val_loss', patience=15,
         mode='min', baseline=None, restore_best_weights=True
     )
     callback2 = tf.keras.callbacks.LearningRateScheduler(scheduler)
     print(len(train_data))
-    model.compile(tf.keras.optimizers.Adam(learning_rate=.001),
+    model.compile(tf.keras.optimizers.Adam(learning_rate=.01),
                   loss=tf.keras.losses.BinaryCrossentropy(),
                   metrics=['accuracy'])
 
-    history_1 = model.fit(train_data, epochs=40, steps_per_epoch=len(train_data),
+    history_1 = model.fit(train_data, epochs=30, steps_per_epoch=len(train_data),
                           validation_data=test_data, validation_steps=len(test_data), callbacks=[callback1, callback2])
     # predict(model, class_names)
     return model
