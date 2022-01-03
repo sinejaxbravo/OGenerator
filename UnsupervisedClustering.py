@@ -51,6 +51,7 @@ def Affinity(data, labels, title="Affinity"):
     # retrieve unique clusters
     clusters = np.unique(yhat)
     print("AFFINITY:")
+    print(clusters)
 
     for i in range(X.shape[0]):
         if labels[i] in fash:
@@ -66,11 +67,17 @@ def Affinity(data, labels, title="Affinity"):
         # get row indexes for samples with this cluster
         print(labels[i])
         print(X[i], "\n\n")
-        i += 1
+
         row_ix = np.where(yhat == cluster)
         # create scatter of these samples
-        plt.scatter(X[row_ix, 0], X[row_ix, 1])
+        if labels[i] in fash:
+            plt.scatter(X[row_ix, 0], X[row_ix, 1], c="red")
+        elif labels[i] in not_fash:
+            plt.scatter(X[row_ix, 0], X[row_ix, 1], c="black")
+        else:
+            plt.scatter(X[row_ix, 0], X[row_ix, 1], c="blue")
         print(X[row_ix, 0], X[row_ix, 1], "\n")
+        i += 1
     # show the plot
     plt.title(f"{title}")
     plt.show()
@@ -176,8 +183,9 @@ def DB_SCAN(data, labels, title="DB SCAN"):
     yhat = dbscan.fit_predict(X)
     # retrieve unique clusters
     clusters = np.unique(yhat)
-    # create scatter plot for samples from each cluster
     print("DB_SCAN:")
+    print(clusters)
+    # create scatter plot for samples from each cluster
     for i in range(X.shape[0]):
         if labels[i] in fash:
             print("FASH SET--", labels[i])
@@ -194,7 +202,12 @@ def DB_SCAN(data, labels, title="DB SCAN"):
         # get row indexes for samples with this cluster
         row_ix = np.where(yhat == cluster)
         # create scatter of these samples
-        plt.scatter(X[row_ix, 0], X[row_ix, 1])
+        if labels[i] in fash:
+            plt.scatter(X[row_ix, 0], X[row_ix, 1], c="red")
+        elif labels[i] in not_fash:
+            plt.scatter(X[row_ix, 0], X[row_ix, 1], c="black")
+        else:
+            plt.scatter(X[row_ix, 0], X[row_ix, 1], c="blue")
         print(X[row_ix, 0], X[row_ix, 1], "\n")
     # show the plot
 
@@ -288,18 +301,18 @@ def model():
     # Mean_Shift(pair_feats, pairs)
     Affinity(pair_feats, pairs)
 
-
-
+    pairsN, pair_featsN = good_bad_outfits(model, not_fash)
     pairs, pair_feats = good_bad_outfits(model, fash)
-    DB_SCAN(pair_feats, pairs, "Liked")
+    DB_SCAN(pair_feats, pairs, "Liked DB Scan")
+    DB_SCAN(pair_featsN, pairsN, "Not Liked DB Scan")
     # Mean_Shift(pair_feats, pairs)
-    Affinity(pair_feats, pairs, "Liked")
+    Affinity(pair_feats, pairs, "Liked Affinity")
 
-    pairs, pair_feats = good_bad_outfits(model, not_fash)
-    DB_SCAN(pair_feats, pairs, "Not Liked")
+
     # Mean_Shift(pair_feats, pairs)
-    Affinity(pair_feats, pairs, "Not Liked")
-    # Optics(pair_feats, pairs)
+    Affinity(pair_featsN, pairsN, "Not Liked Affinity")
+    Optics(pair_feats, pairs)
+    Optics(pair_featsN, pairsN)
     # K_Nearest(pair_feats, model)
     i = 0
     data = {}
