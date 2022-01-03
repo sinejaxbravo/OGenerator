@@ -40,7 +40,7 @@ not_fash = ["./clothes/pairs/2.jpg", "./clothes/pairs/21.jpg",
 
 
 def Affinity(data, labels, mode="x", title="Affinity"):
-
+    cut = []
     X = StandardScaler().fit_transform(data)
     model = AffinityPropagation(damping=0.9, random_state=None)
     # fit the model
@@ -53,6 +53,8 @@ def Affinity(data, labels, mode="x", title="Affinity"):
     print(clusters)
     if mode != "x":
         for i in range(X.shape[0]):
+            if X[i, 0] < np.average(X[:, 0])/5 and X[i, 1] > np.average(X[:, 1])/5:
+                cut.append(labels[i])
             if labels[i] in fash:
                 plt.scatter(X[i, 0], X[i, 1], c="red")
                 print("FASH SET--", labels[i])
@@ -62,6 +64,10 @@ def Affinity(data, labels, mode="x", title="Affinity"):
                 print("NOT FASH SET--", labels[i])
                 print(X[i, 0], X[i, 1], "\n")
 
+        cut.sort()
+        cut.sort(key=len)
+        for i in cut:
+            print(i)
     i = 0
     if mode == "x":
         for cluster in clusters:
@@ -255,6 +261,7 @@ def extraction(model, image):
 
 def get_pair_pred(model):
     features = []
+
     for filename in os.listdir("clothes/pairs"):
         imag = image.load_img(f"clothes/pairs/{filename}", target_size=(224, 224))
         img_array = image.img_to_array(imag)
@@ -294,7 +301,7 @@ def model():
     model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
     photos = get_photos(dir_small)
     pairs = get_pred_photos(dir_pred)
-    pairs = pairs + photos
+    pairs = pairs
     pairs, pair_feats = features_lists(pairs, model)
     DB_SCAN(pair_feats, pairs)
     DB_SCAN(pair_feats, pairs, "m")
