@@ -53,7 +53,7 @@ def Affinity(data, labels, mode="x", title="Affinity"):
     print(clusters)
     if mode != "x":
         for i in range(X.shape[0]):
-            if X[i, 0] < np.average(X[:, 0])/6 and X[i, 1] > np.average(X[:, 1])/6:
+            if X[i, 0] < np.average(X[:, 0]) * 1.25 and X[i, 1] > np.average(X[:, 1]) * 1.25:
                 cut.append(labels[i])
             if labels[i] in fash:
                 plt.scatter(X[i, 0], X[i, 1], c="red")
