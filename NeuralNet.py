@@ -20,8 +20,8 @@ config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth = True
 session = tf.compat.v1.Session(config=config)
 
-dirtrain = "/Users/stuar/Desktop/TrainingData/squares/train"
-dirtest = "/Users/stuar/Desktop/TrainingData/squares/test"
+dirtrain = "/Users/stuar/Desktop/TrainingData/dualclass/train"
+dirtest = "/Users/stuar/Desktop/TrainingData/dualclass/test"
 dir_large = "/Users/stuar/Desktop/TrainingData/unsupervised"
 dir_one = "/Users/stuar/Desktop/TrainingData/unsup"
 
@@ -85,8 +85,7 @@ def get_datagen(train_test):
                                   shear_range=0.1,
                                   zoom_range=0.3,
                                   width_shift_range=0.3,
-                                  height_shift_range=0.3,
-                                  horizontal_flip=True)
+                                  height_shift_range=0.3)
     else:
         return ImageDataGenerator(rescale=1 / 255.)
 
@@ -182,7 +181,7 @@ def build_CNN():
     x = layer.Dense(1024)(x)
     x = layer.Dense(1000)(x)
 
-    output = layer.Dense(5, activation='softmax')(x)
+    output = layer.Dense(1, activation='sigmoid')(x)
 
     model = tf.keras.Model(inputs=input, outputs=output)
 
@@ -222,16 +221,16 @@ def oldCNN():
     x = layer.Conv2D(filters=64, kernel_size=1, strides=1, padding='same')(x)
     x = sequence_a(x, 64, 1, 1)
     x = global_average_layer(x)
-    x = tf.keras.layers.Dropout(0.2)(x)
+    x = tf.keras.layers.Dropout(0.35)(x)
     x = tf.keras.layers.Dense(1024)(x)
     x = tf.keras.layers.Dense(1000)(x)
-    x = tf.keras.layers.Dense(5)(x)
-    outputs = layer.Activation('softmax')(x)
+    x = tf.keras.layers.Dense(2)(x)
+    outputs = layer.Activation('sigmoid')(x)
     model = tf.keras.Model(inputs, outputs)
 
     print(len(train_data))
-    model.compile(tf.keras.optimizers.Adam(learning_rate=.0001),
-                  loss=tf.keras.losses.CategoricalCrossentropy(),
+    model.compile(tf.keras.optimizers.Adam(learning_rate=.001),
+                  loss=tf.keras.losses.BinaryCrossentropy(),
                   metrics=['accuracy'])
 
     history_1 = model.fit(train_data, epochs=10, steps_per_epoch=len(train_data),

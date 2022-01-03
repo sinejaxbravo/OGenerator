@@ -2,7 +2,6 @@ import itertools
 import os
 import sys
 import time
-from collections import Set
 
 import matplotlib.pyplot as plt
 import progressbar
@@ -59,7 +58,7 @@ def Affinity(data, labels, mode="x", title="Affinity"):
                 print("FASH SET--", labels[i])
                 print(X[i, 0], X[i, 1], "\n")
             elif labels[i] in not_fash and mode == "u":
-                plt.scatter(X[i, 0], X[i, 1], c="yellow")
+                plt.scatter(X[i, 0], X[i, 1], c="purple")
                 print("NOT FASH SET--", labels[i])
                 print(X[i, 0], X[i, 1], "\n")
 
@@ -190,7 +189,7 @@ def DB_SCAN(data, labels, mode="x", title="DB SCAN"):
                 print("FASH SET--", labels[i])
                 print(X[i, 0], X[i, 1], "\n")
             elif labels[i] in not_fash and mode == "u":
-                plt.scatter(X[i, 0], X[i, 1], c="yellow")
+                plt.scatter(X[i, 0], X[i, 1], c="purple")
                 print("NOT FASH SET--", labels[i])
                 print(X[i, 0], X[i, 1], "\n")
 
