@@ -225,14 +225,14 @@ def oldCNN():
     x = tf.keras.layers.Dense(1024)(x)
     x = tf.keras.layers.Dropout(0.2)(x)
     x = tf.keras.layers.Dense(1000)(x)
-    x = tf.keras.layers.Dropout(0.2)(x)
-    x = tf.keras.layers.Dense(512)(x)
+    # x = tf.keras.layers.Dropout(0.2)(x)
+    # x = tf.keras.layers.Dense(512)(x)
     x = tf.keras.layers.Dense(2)(x)
     outputs = layer.Activation('sigmoid')(x)
     model = tf.keras.Model(inputs, outputs)
 
     print(len(train_data))
-    model.compile(tf.keras.optimizers.Adam(learning_rate=.001),
+    model.compile(tf.keras.optimizers.Adam(learning_rate=.0001),
                   loss=tf.keras.losses.BinaryCrossentropy(),
                   metrics=['accuracy'])
 
