@@ -2,6 +2,7 @@ import itertools
 import os
 import sys
 import time
+from shutil import copyfile
 
 import matplotlib.pyplot as plt
 import progressbar
@@ -26,6 +27,19 @@ dir_small = "/Users/stuar/Desktop/TrainingData/unsupervised_small"
 
 dir_pred = "./clothes/pairs"
 
+
+dir_1 = "./clothes/predicted_1"
+dir_15 = "./clothes/predicted_1dot5"
+dir_5 = "./clothes/predicted_dot5"
+dir_zip = "./clothes/predicted_zip"
+
+output = {1: dir_1, 1.5: dir_15, .5: dir_5, 0: dir_zip}
+
+# for o in output:
+#     for x in output[o]:
+#         os.remove(x)
+
+
 fash = ["./clothes/pairs/4.jpg", "./clothes/pairs/5.jpg",
         "./clothes/pairs/7.jpg", "./clothes/pairs/8.jpg",
         "./clothes/pairs/10.jpg","./clothes/pairs/18.jpg","./clothes/pairs/23.jpg",
@@ -39,7 +53,7 @@ not_fash = ["./clothes/pairs/2.jpg", "./clothes/pairs/21.jpg",
         "./clothes/pairs/178.jpg","./clothes/pairs/181.jpg"]
 
 
-def Affinity(data, labels, mode="x", title="Affinity"):
+def Affinity(data, labels, mode="x", title="Affinity", scalar=1.):
     cut = []
     X = StandardScaler().fit_transform(data)
     model = AffinityPropagation(damping=0.9, random_state=None)
@@ -50,24 +64,30 @@ def Affinity(data, labels, mode="x", title="Affinity"):
     # retrieve unique clusters
     clusters = np.unique(yhat)
     print("AFFINITY:")
-    print(clusters)
+    # print(clusters)
     if mode != "x":
         for i in range(X.shape[0]):
-            if X[i, 0] < np.average(X[:, 0]) * 1.4 and X[i, 1] > np.average(X[:, 1]) * 1.4:
+            if X[i, 0] < np.average(X[:, 0]) - np.std(X[:, 0]) * scalar and X[i, 1] > np.average(X[:, 1]) + np.std(X[:, 0]) * scalar:
                 cut.append(labels[i])
             if labels[i] in fash:
                 plt.scatter(X[i, 0], X[i, 1], c="red")
-                print("FASH SET--", labels[i])
-                print(X[i, 0], X[i, 1], "\n")
+                # print("FASH SET--", labels[i])
+                # print(X[i, 0], X[i, 1], "\n")
             elif labels[i] in not_fash and mode == "u":
                 plt.scatter(X[i, 0], X[i, 1], c="purple")
-                print("NOT FASH SET--", labels[i])
-                print(X[i, 0], X[i, 1], "\n")
+                # print("NOT FASH SET--", labels[i])
+                # print(X[i, 0], X[i, 1], "\n")
 
+        print(f"Scalar: {scalar}")
         cut.sort()
         cut.sort(key=len)
+        output_path = output[scalar]
+        print(output_path)
         for i in cut:
-            print(i)
+            t = i[-10:len(i)]
+            print(output_path+t[t.index("/"):t.index(".")]+".jpg")
+            copyfile(i, output_path+t[t.index("/"):t.index(".")]+".jpg")
+
     i = 0
     if mode == "x":
         for cluster in clusters:
@@ -303,13 +323,16 @@ def model():
     pairs = get_pred_photos(dir_pred)
     pairs = pairs
     pairs, pair_feats = features_lists(pairs, model)
-    DB_SCAN(pair_feats, pairs)
-    DB_SCAN(pair_feats, pairs, "m")
-    DB_SCAN(pair_feats, pairs, "u")
+    # DB_SCAN(pair_feats, pairs)
+    # DB_SCAN(pair_feats, pairs, "m")
+    # DB_SCAN(pair_feats, pairs, "u")
     # Mean_Shift(pair_feats, pairs)
-    Affinity(pair_feats, pairs)
+    # Affinity(pair_feats, pairs)
+    Affinity(pair_feats, pairs, "u", ".5 ", .5)
     Affinity(pair_feats, pairs, "m")
-    Affinity(pair_feats, pairs, "u")
+    Affinity(pair_feats, pairs, "u", ".5 ", 1.5)
+    Affinity(pair_feats, pairs, "u", ".5 ", 0)
+
 
 
     # pairsN, pair_featsN = good_bad_outfits(model, not_fash)
