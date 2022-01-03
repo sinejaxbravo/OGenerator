@@ -191,7 +191,7 @@ def build_CNN():
 
 
 def scheduler(epoch, lr):
-    if epoch < 7:
+    if epoch < 5:
         return lr
     else:
         return lr * tf.math.exp(-0.1)
@@ -220,15 +220,11 @@ def oldCNN():
     x = sequence_a(x, 128, 1, 1)
     x = layer.Conv2D(filters=256, kernel_size=1, strides=1, padding='same')(x)
     x = sequence_a(x, 256, 1, 1)
-    # x = layer.Conv2D(filters=512, kernel_size=1, strides=1, padding='same')(x)
-    # x = sequence_a(x, 512, 1, 1)
-    # x = layer.Conv2D(filters=1024, kernel_size=1, strides=1, padding='same')(x)
-    # x = sequence_a(x, 1024, 1, 1)
     x = global_average_layer(x)
     x = tf.keras.layers.Dropout(0.5)(x)
     x = tf.keras.layers.Dense(1024)(x)
     x = tf.keras.layers.Dropout(0.3)(x)
-    x = tf.keras.layers.Dense(1000)(x)
+    x = tf.keras.layers.Dense(1024)(x)
     x = tf.keras.layers.Dropout(0.3)(x)
     x = tf.keras.layers.Dense(512)(x)
     x = tf.keras.layers.Dropout(0.2)(x)
@@ -245,7 +241,7 @@ def oldCNN():
     )
     callback2 = tf.keras.callbacks.LearningRateScheduler(scheduler)
     print(len(train_data))
-    model.compile(tf.keras.optimizers.Adam(learning_rate=.0001),
+    model.compile(tf.keras.optimizers.Adam(learning_rate=.001),
                   loss=tf.keras.losses.BinaryCrossentropy(),
                   metrics=['accuracy'])
 
