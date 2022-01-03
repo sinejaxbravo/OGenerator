@@ -29,8 +29,8 @@ urbanoutfitters = "https://www.urbanoutfitters.com/womens-tops?page=8"
 # Reiss works! https://www.reiss.com/us/mens/coats-jackets/jackets/
 #Best website yet!!! SSENSE
 
-site = "https://www.ssense.com/en-us/men/designers/bode/clothing?page=2"
-x = 13500
+site = "https://www.ssense.com/en-us/men/designers/carne-bollente/clothing"
+x = 16600
 
 
 s = Service(path)
