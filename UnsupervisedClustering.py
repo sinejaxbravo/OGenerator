@@ -315,7 +315,7 @@ def good_bad_outfits(model, set):
 
 
 def model():
-    res = NeuralNet.oldCNN()
+    res = NeuralNet.fashion_CNN()
     # vgg = VGG16()
     model = res
     model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
