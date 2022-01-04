@@ -1,19 +1,15 @@
-import os
 import pathlib
-from queue import PriorityQueue
+import os
+import time
 
-from PIL import Image
+from six.moves import urllib
+import tensorflow_datasets.public_api as tfds
 import tensorflow as tf
 import numpy as np
+from tensorflow import keras
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.preprocessing import image
-import matplotlib.pyplot as plt
-from time import sleep
-import sys
 import tensorflow.keras.layers as layer
-from tensorflow.keras import mixed_precision
-import pandas as pd
-from tensorflow.python.keras.layers import Activation
 
 # mixed_precision.set_global_policy("mixed_float16")
 config = tf.compat.v1.ConfigProto()
@@ -222,7 +218,7 @@ def scheduler(epoch, lr):
         return lr * tf.math.exp(-0.005)
 
 
-def oldCNN():
+def fashion_CNN():
     data_dir = pathlib.Path(dirtrain)
     class_names = np.array(sorted([item.name for item in data_dir.glob('*')]))
     train_datagen = get_datagen("tin")
@@ -273,5 +269,68 @@ def oldCNN():
     # predict(model, class_names)
     return model
 
+
+# Make a function for preprocessing images
+def preprocess_img(image, label, img_shape=28):
+  image = tf.image.resize(image, [img_shape, img_shape]) # reshape to img_shape
+  return tf.cast(image, tf.float32), label # return (float32_image, label) tuple
+
+
+def get_dataset(name_of):
+    (train_data, test_data), info = tfds.load(name_of, split=["train", "test"], with_info=True, shuffle_files=True,
+                                              as_supervised=True)
+    data = (train_data, test_data)
+
+    return data, info
+
+
+def item_type_CNN():
+    data, info = get_dataset("fashion_mnist")
+    labels = info.features["label"].names
+    print(len(labels))
+
+    # for image, label in data[0]:
+    #     print(f"""
+    #   Image shape: {image.shape}
+    #   Image dtype: {image.dtype}
+    #   Target class from Food101 (tensor form): {label}
+    #   Class name (str form): {labels[label.numpy()]}
+    #         """)
+
+    # Map preprocessing function to training data (and paralellize)
+    train_data = data[0].map(map_func=preprocess_img, num_parallel_calls=tf.data.AUTOTUNE).shuffle(buffer_size=1000)\
+        .batch(batch_size=32).prefetch(buffer_size=tf.data.AUTOTUNE)
+    train_data = train_data
+
+    # Map prepreprocessing function to test data
+    test_data = data[1].map(preprocess_img, num_parallel_calls=tf.data.AUTOTUNE).batch(32).prefetch(tf.data.AUTOTUNE)
+    input = layer.Input(shape=(28, 28, 1))
+    x = layer.Conv2D(32, (3, 3), activation="relu")(input)
+    x = residual(x, 32, 1)
+    x = residual(x, 32, 1)
+    x = residual(x, 32, 1)
+    x = layer.GlobalAveragePooling2D()(x)
+    x = layer.Flatten()(x)
+    x = layer.Dense(256, activation='relu')(x)
+    output = layer.Dense(10, activation='softmax')(x)
+
+    model = tf.keras.models.Model(inputs=input, outputs=output)
+
+    callback1 = tf.keras.callbacks.EarlyStopping(
+        monitor='val_loss', patience=15,
+        mode='min', baseline=None, restore_best_weights=True
+    )
+    callback2 = tf.keras.callbacks.LearningRateScheduler(scheduler)
+    model.compile(tf.keras.optimizers.Adam(learning_rate=.01),
+                  loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+                  metrics=['accuracy'])
+
+    history_1 = model.fit(train_data, epochs=30, steps_per_epoch=len(train_data),
+                          validation_data=test_data, validation_steps=len(test_data), callbacks=[callback1, callback2])
+
+
+
 # build_CNN()
 # oldCNN()
+
+item_type_CNN()
