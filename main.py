@@ -81,7 +81,7 @@ def make_pairs():
 
 
 def background_removal():
-    img = cv2.imread('./clothes/pants/IMG_0672.jpg')
+    img = cv2.imread('./clothes/shirts/IMG_0671.jpg')
     plt.imshow(img), plt.show()
     color = img[0:5, 0:5]
     print(img[0:0, 0:0])
@@ -138,12 +138,8 @@ def background_removal():
                     print("nan")
         scalar -= 5
 
-    dst = cv2.cornerHarris(img, 2, 3, 0.04)
-    img[dst > 0.01 * dst.max()] = 255
-
-
     plt.imshow(img), plt.show()
-    cv2.imwrite("reduced.jpg", dst)
+    cv2.imwrite('reduced.jpg', img)
 
 background_removal()
 # make_square()
