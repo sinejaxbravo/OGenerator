@@ -1,4 +1,6 @@
+import math
 import os
+import sys
 import time
 
 import cv2
@@ -56,9 +58,7 @@ def make_pairs():
         print(dim)
         x.append(square)
 
-
         # color = FormatPhoto.getColor(photo)
-
 
     for shirts in os.listdir(path_shirt):
         shirt = cv2.imread(path_shirt + "\\" + shirts)
@@ -74,8 +74,79 @@ def make_pairs():
         for ys in y:
             prime = np.concatenate((ys, xs), axis=0)
             plt.imshow(prime), plt.show()
-            cv2.imwrite(path_pairs+ str(z) +".jpg", prime)
+            cv2.imwrite(path_pairs + str(z) + ".jpg", prime)
             z += 1
 
 
-make_square()
+def background_removal():
+    img = cv2.imread('./clothes/pants/IMG_0672.jpg')
+    plt.imshow(img), plt.show()
+    color = img[0:5, 0:5]
+    print(img[0:0, 0:0])
+    p_color = img[1000:1005, 1000:1005]
+    # print(color, color.shape)
+    # print("\nP", p_color, p_color.shape)
+    dist_r = np.sum(np.average((color[:, :, 0] - p_color[:, :, 0]), axis=0) ** 2) ** .5
+    dist_g = np.sum(np.average((color[:, :, 1] - p_color[:, :, 1]), axis=0) ** 2) ** .5
+    dist_b = np.sum(np.average((color[:, :, 2] - p_color[:, :, 2]), axis=0) ** 2) ** .5
+    tot = (dist_r + dist_g + dist_b) / 3.
+    print(dist_b)
+    print(tot, "\n")
+    p_color = img[10:15, 10:15]
+    dist_r = np.sum(np.average((color[:, :, 0] - p_color[:, :, 0]), axis=0) ** 2) ** .5
+    dist_g = np.sum(np.average((color[:, :, 1] - p_color[:, :, 1]), axis=0) ** 2) ** .5
+    dist_b = np.sum(np.average((color[:, :, 2] - p_color[:, :, 2]), axis=0) ** 2) ** .5
+    tot = (dist_r + dist_g + dist_b) / 3.
+
+    color = img[0:500, 0:img.shape[1]]
+    p_color = img[1500:2500, 800:1000]
+
+    # dist_r = np.sum(np.average((color[:, :, 0]), axis=0) ** 2) ** .5
+    # dist_g = np.sum(np.average((color[:, :, 1]), axis=0) ** 2) ** .5
+    # dist_b = np.sum(np.average((color[:, :, 2]), axis=0) ** 2) ** .5
+
+    p_r = np.average(p_color[:, :, 0])
+    p_g = np.average(p_color[:, :, 1])
+    p_b = np.average(p_color[:, :, 2])
+
+    color = img[3030:3060, 0:30]
+    # print("\n", np.average(color[:, :, 0]))
+    # print(np.average(color[:, :, 1]))
+    print(img.shape)
+    print(int(img.shape[0] / 30))
+    print(int(img.shape[1] / 30))
+
+
+
+    scalar = 25
+
+    for z in range(3):
+        for i in range(int(img.shape[0] / scalar)+1):
+            for j in range(int(img.shape[1] / scalar)+1):
+                x = j * scalar
+                y = i * scalar
+                # print(i, j, "\n")
+                color = img[y:y + scalar, x:x + scalar]
+                try:
+                    i_r = np.average(color[:, :, 0])
+                    i_g = np.average(color[:, :, 1])
+                    i_b = np.average(color[:, :, 2])
+                    tot = (p_r - i_r) + (p_g - i_g) + (p_b - i_b)
+                    if tot != 0 and np.abs( tot/ 3) > 60:
+                        img[y:y + scalar, x:x + scalar] = 255, 255, 255
+                except:
+                    print("nan")
+        scalar -= 5
+
+    plt.imshow(img), plt.show()
+
+    cv2.imwrite("reduced.jpg", img)
+
+    # print(np.average(color, axis=2))
+    # print("\n", , axis=2))
+
+    time.sleep(5)
+
+
+background_removal()
+# make_square()
