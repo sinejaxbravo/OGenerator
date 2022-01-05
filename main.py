@@ -4,6 +4,8 @@ import sys
 import time
 
 import cv2
+import skimage
+
 import FormatPhoto
 import numpy as np
 from matplotlib import pyplot as plt
@@ -116,13 +118,11 @@ def background_removal():
     print(int(img.shape[0] / 30))
     print(int(img.shape[1] / 30))
 
-
-
     scalar = 25
 
     for z in range(3):
-        for i in range(int(img.shape[0] / scalar)+1):
-            for j in range(int(img.shape[1] / scalar)+1):
+        for i in range(int(img.shape[0] / scalar) + 1):
+            for j in range(int(img.shape[1] / scalar) + 1):
                 x = j * scalar
                 y = i * scalar
                 # print(i, j, "\n")
@@ -132,21 +132,18 @@ def background_removal():
                     i_g = np.average(color[:, :, 1])
                     i_b = np.average(color[:, :, 2])
                     tot = (p_r - i_r) + (p_g - i_g) + (p_b - i_b)
-                    if tot != 0 and np.abs( tot/ 3) > 60:
+                    if tot != 0 and np.abs(tot / 3) > 60:
                         img[y:y + scalar, x:x + scalar] = 255, 255, 255
                 except:
                     print("nan")
         scalar -= 5
 
+    dst = cv2.cornerHarris(img, 2, 3, 0.04)
+    img[dst > 0.01 * dst.max()] = 255
+
+
     plt.imshow(img), plt.show()
-
-    cv2.imwrite("reduced.jpg", img)
-
-    # print(np.average(color, axis=2))
-    # print("\n", , axis=2))
-
-    time.sleep(5)
-
+    cv2.imwrite("reduced.jpg", dst)
 
 background_removal()
 # make_square()
