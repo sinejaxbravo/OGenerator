@@ -18,8 +18,6 @@ import urllib.request
 
 
 
-import pymongo
-
 #https://medium.com/geekculture/scraping-images-using-selenium-f35fab26b122
 path = "C:\Program Files (x86)\Google\chromedriver.exe"
 photofolder = "/Users/stuar/Desktop/TrainingData/FashionGen"
@@ -27,11 +25,10 @@ photofolder = "/Users/stuar/Desktop/TrainingData/FashionGen"
 urbanoutfitters = "https://www.urbanoutfitters.com/womens-tops?page=8"
 
 # Reiss works! https://www.reiss.com/us/mens/coats-jackets/jackets/
-#Best website yet!!! SSENSE
+# Best website yet!!! SSENSE
 
-site = "https://www.ssense.com/en-us/men/designers/come-back-as-a-flower/clothing"
-x = 17800
-
+site = "https://www.ssense.com/en-us/men/designers/davi-paris/clothing"
+x = 20600
 
 s = Service(path)
 

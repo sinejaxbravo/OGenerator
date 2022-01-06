@@ -57,3 +57,13 @@ class test:
 
     db = database.collection_types["pair"]
     print(db.count_documents({}))
+    tester = []
+    a = {1, 2}
+
+    b = {1, 2}
+
+    tester.append(a)
+    print(b in tester)
+
+
+

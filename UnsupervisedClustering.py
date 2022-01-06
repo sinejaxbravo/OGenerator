@@ -84,8 +84,10 @@ def Affinity(data, labels, mode="x", title="Affinity", scalar=1.):
         output_path = output[scalar]
         print(output_path)
         for i in cut:
-            t = i[-10:len(i)]
-            print(output_path+t[t.index("/"):t.index(".")]+".jpg")
+            print(i)
+            t = i[-15:len(i)]
+            print(t)
+            print(output_path+t[0:t.index(".")]+".jpg")
             copyfile(i, output_path+t[t.index("/"):t.index(".")]+".jpg")
 
     i = 0

@@ -24,35 +24,6 @@ paths = {"pant": path_pant, "shirt": path_shirt, "outfit": path_outfit, "pair": 
          "coat": path_coat}
 
 
-def make_square():
-    x = 0
-    # path = "C:\\Users\\stuar\\Desktop\\TrainingData\\newoutfitclasses"
-    path2 = "C:\\Users\\stuar\\Desktop\\TrainingData\\dualclass"
-    for folder in os.listdir(path2):
-        if folder[0] != "s":
-            for filename in os.listdir(path2 + f"/{folder}"):
-                p = path2 + "\\" + folder + "\\" + filename
-                print(p)
-                photo = cv2.imread(p)
-                print(path2 + f"\\s{folder}" + filename)
-                photo = cv2.resize(photo, (1600, 1600), interpolation=cv2.INTER_AREA)
-                plt.imshow(photo), plt.show()
-                square = photo[600:1000, 520:1080]
-                square = cv2.resize(square, (240, 120), interpolation=cv2.INTER_LINEAR)
-
-                pants = photo[1500:photo.shape[0], 520:700]
-                pants = np.concatenate((photo[1500:photo.shape[0], 520:700], pants), axis=0)
-
-                pants = cv2.resize(pants, (square.shape[1], square.shape[0]), interpolation=cv2.INTER_AREA)
-                print(pants.shape, square.shape)
-                prime = np.concatenate((square, pants), axis=0)
-                prime2 = np.concatenate((pants, square), axis=0)
-                print(prime.shape)
-                plt.imshow(prime), plt.show()
-                plt.imshow(prime2), plt.show()
-                cv2.imwrite(path2 + f"\\s{folder}\\" + filename, prime2)
-                cv2.imwrite(path2 + f"\\s{folder}\\" + "flip_" + filename, prime)
-
 # TODO REDUCED IS THE BACKGROUND REMOVED. ITEM IS JUST THE SQUARE
 def clean_item(path_and_name, clothing_type, dim=(400, 200)):
     item = cv2.imread(path_and_name)
@@ -95,19 +66,19 @@ def make_pairs(paths_list, paths_names, output_path, dim=(400, 200)):
             path_items.append(obj)
             all_irrespective_of_types.append(obj)
             plt.imshow(item), plt.show()
-        items_verified.append(path_items)
+            items_verified.append(path_items)
         index += 1
 
         # color = FormatPhoto.getColor(photo)
 
     db = DB()
     combo_num = db.collection_types["pair"].count_documents({})
-    print(combo_num)
-
-    for lists in items_verified:
+    paired = []
+    for lists in items_verified[1:len(items_verified)]:
         for list_items in lists:
             for item in all_irrespective_of_types:
-                if item not in lists:
+                set_pair = {item[0], list_items[0]}
+                if item not in lists and set_pair not in paired:
                     comb = np.concatenate((item[1], list_items[1]), axis=0)
                     plt.imshow(comb), plt.show()
                     combo = f"{item[0]}, {list_items[0]}"
@@ -115,6 +86,7 @@ def make_pairs(paths_list, paths_names, output_path, dim=(400, 200)):
                     print(output_path)
                     print(name)
                     print(combo)
+                    paired.append(set_pair)
                     ret = db.store_image(comb, output_path, f"pair_{combo_num}.jpg", "pair", combo)
                     print(ret)
                     # image = {
