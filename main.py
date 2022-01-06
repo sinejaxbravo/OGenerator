@@ -91,7 +91,7 @@ def make_pairs(paths_list, paths_names, output_path, dim=(400, 200)):
                 reduced, item = clean_item(path_and_name, "else", dim)
                 # item = item[300:650, 400:800]
                 # item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
-            obj = (item_name, item)
+            obj = (path_and_name, item)
             path_items.append(obj)
             all_irrespective_of_types.append(obj)
             plt.imshow(item), plt.show()

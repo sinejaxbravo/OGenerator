@@ -333,4 +333,4 @@ def item_type_CNN():
 # build_CNN()
 # oldCNN()
 
-item_type_CNN()
+# item_type_CNN()
