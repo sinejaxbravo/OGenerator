@@ -25,7 +25,7 @@ import NeuralNet
 dir_large = "/Users/stuar/Desktop/TrainingData/unsupervised"
 dir_small = "/Users/stuar/Desktop/TrainingData/unsupervised_small"
 
-dir_pred = "./clothes/pairs"
+dir_pred = "clothes/pair"
 
 
 dir_1 = "./clothes/predicted_1"
@@ -40,17 +40,17 @@ output = {1: dir_1, 1.5: dir_15, .5: dir_5, 0: dir_zip}
 #         os.remove(x)
 
 
-fash = ["./clothes/pairs/4.jpg", "./clothes/pairs/5.jpg",
-        "./clothes/pairs/7.jpg", "./clothes/pairs/8.jpg",
-        "./clothes/pairs/10.jpg","./clothes/pairs/18.jpg","./clothes/pairs/23.jpg",
-        "./clothes/pairs/56.jpg","./clothes/pairs/68.jpg","./clothes/pairs/69.jpg",
-        "./clothes/pairs/70.jpg","./clothes/pairs/79.jpg","./clothes/pairs/102.jpg"]
+fash = ["./clothes/pair/4.jpg", "./clothes/pair/5.jpg",
+        "./clothes/pair/7.jpg", "./clothes/pair/8.jpg",
+        "./clothes/pair/10.jpg","./clothes/pair/18.jpg","./clothes/pair/23.jpg",
+        "./clothes/pair/56.jpg","./clothes/pair/68.jpg","./clothes/pair/69.jpg",
+        "./clothes/pair/70.jpg","./clothes/pair/79.jpg","./clothes/pair/102.jpg"]
 
-not_fash = ["./clothes/pairs/2.jpg", "./clothes/pairs/21.jpg",
-        "./clothes/pairs/22.jpg", "./clothes/pairs/64.jpg",
-        "./clothes/pairs/49.jpg","./clothes/pairs/50.jpg","./clothes/pairs/51.jpg",
-        "./clothes/pairs/132.jpg","./clothes/pairs/135.jpg","./clothes/pairs/127.jpg",
-        "./clothes/pairs/178.jpg","./clothes/pairs/181.jpg"]
+not_fash = ["./clothes/pair/2.jpg", "./clothes/pair/21.jpg",
+        "./clothes/pair/22.jpg", "./clothes/pair/64.jpg",
+        "./clothes/pair/49.jpg","./clothes/pair/50.jpg","./clothes/pair/51.jpg",
+        "./clothes/pair/132.jpg","./clothes/pair/135.jpg","./clothes/pair/127.jpg",
+        "./clothes/pair/178.jpg","./clothes/pair/181.jpg"]
 
 
 def Affinity(data, labels, mode="x", title="Affinity", scalar=1.):
@@ -84,8 +84,10 @@ def Affinity(data, labels, mode="x", title="Affinity", scalar=1.):
         output_path = output[scalar]
         print(output_path)
         for i in cut:
-            t = i[-10:len(i)]
-            print(output_path+t[t.index("/"):t.index(".")]+".jpg")
+            print(i)
+            t = i[-15:len(i)]
+            print(t)
+            print(output_path+t[0:t.index(".")]+".jpg")
             copyfile(i, output_path+t[t.index("/"):t.index(".")]+".jpg")
 
     i = 0
@@ -282,8 +284,8 @@ def extraction(model, image):
 def get_pair_pred(model):
     features = []
 
-    for filename in os.listdir("clothes/pairs"):
-        imag = image.load_img(f"clothes/pairs/{filename}", target_size=(224, 224))
+    for filename in os.listdir("clothes/pair"):
+        imag = image.load_img(f"clothes/pair/{filename}", target_size=(224, 224))
         img_array = image.img_to_array(imag)
         img_batch = np.expand_dims(img_array, 0)
         prediction = model.predict(img_batch)
@@ -323,11 +325,11 @@ def model():
     pairs = get_pred_photos(dir_pred)
     pairs = pairs
     pairs, pair_feats = features_lists(pairs, model)
-    # DB_SCAN(pair_feats, pairs)
-    # DB_SCAN(pair_feats, pairs, "m")
-    # DB_SCAN(pair_feats, pairs, "u")
-    # Mean_Shift(pair_feats, pairs)
-    # Affinity(pair_feats, pairs)
+    # DB_SCAN(pair_feats, pair)
+    # DB_SCAN(pair_feats, pair, "m")
+    # DB_SCAN(pair_feats, pair, "u")
+    # Mean_Shift(pair_feats, pair)
+    # Affinity(pair_feats, pair)
     Affinity(pair_feats, pairs, "u", ".5 ", .5)
     Affinity(pair_feats, pairs, "m")
     Affinity(pair_feats, pairs, "u", ".5 ", 1.5)
@@ -336,16 +338,16 @@ def model():
 
 
     # pairsN, pair_featsN = good_bad_outfits(model, not_fash)
-    # pairs, pair_feats = good_bad_outfits(model, fash)
-    # DB_SCAN(pair_feats, pairs, "Liked DB Scan")
+    # pair, pair_feats = good_bad_outfits(model, fash)
+    # DB_SCAN(pair_feats, pair, "Liked DB Scan")
     # DB_SCAN(pair_featsN, pairsN, "Not Liked DB Scan")
-    # # Mean_Shift(pair_feats, pairs)
-    # Affinity(pair_feats, pairs, "Liked Affinity")
+    # # Mean_Shift(pair_feats, pair)
+    # Affinity(pair_feats, pair, "Liked Affinity")
     #
     #
-    # # Mean_Shift(pair_feats, pairs)
+    # # Mean_Shift(pair_feats, pair)
     # Affinity(pair_featsN, pairsN, "Not Liked Affinity")
-    # Optics(pair_feats, pairs)
+    # Optics(pair_feats, pair)
     # Optics(pair_featsN, pairsN)
     # K_Nearest(pair_feats, model)
     # i = 0
