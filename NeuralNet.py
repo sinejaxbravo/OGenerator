@@ -116,8 +116,8 @@ def predict(model, class_names):
     graphics = []
     patterns = []
 
-    for filename in os.listdir("clothes/pairs"):
-        imag = image.load_img(f"clothes/pairs/{filename}", target_size=(224, 224))
+    for filename in os.listdir("clothes/pair"):
+        imag = image.load_img(f"clothes/pair/{filename}", target_size=(224, 224))
         img_array = image.img_to_array(imag)
         img_batch = np.expand_dims(img_array, 0)
         prediction = model.predict(img_batch)
