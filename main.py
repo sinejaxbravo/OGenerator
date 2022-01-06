@@ -10,6 +10,7 @@ import FormatPhoto
 import numpy as np
 from matplotlib import pyplot as plt
 
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 from DB import DB
 
 path_pant = "C:\\Users\\stuar\\Desktop\\PyProjects\\clothes\\pant\\"
@@ -52,47 +53,70 @@ def make_square():
                 cv2.imwrite(path2 + f"\\s{folder}\\" + filename, prime2)
                 cv2.imwrite(path2 + f"\\s{folder}\\" + "flip_" + filename, prime)
 
+# TODO REDUCED IS THE BACKGROUND REMOVED. ITEM IS JUST THE SQUARE
+def clean_item(path_and_name, clothing_type, dim=(400, 200)):
+    item = cv2.imread(path_and_name)
+    item = cv2.resize(item, (1200, 1000), interpolation=cv2.INTER_AREA)
+    reduced = FormatPhoto.findAndCut(FormatPhoto.noiseReduction(item, 10), clothing_type)
+    if type == "pant":
+        item = reduced[200:400, 300:400]
+        item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
+    else:
+        item = reduced[300:650, 400:800]
+        item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
 
-def make_pairs(paths, paths_names, output_path, dim=(400, 200)):
-    all = []
+    return reduced, item
+
+
+# TODO save the square of each photo with a link to it (and its name)so in the future we can simply pair
+#  the new item with all of the and dont have to iterate through and recut all of the previous squares
+
+def make_pairs(paths_list, paths_names, output_path, dim=(400, 200)):
+    all_irrespective_of_types = []
     items_verified = []
     index = 0
-    for path in paths:
+    for path in paths_list:
         path_items = []
         for item_name in os.listdir(path):
-            item = cv2.imread(path + "\\" + item_name)
-            item = cv2.resize(item, (1200, 1000), interpolation=cv2.INTER_AREA)
-            item = FormatPhoto.findAndCut(FormatPhoto.noiseReduction(item, 10), f"{paths_names[index]}")
-            item = item[200:400, 300:400]
-            item = cv2.resize(item, (dim[1], dim[0]), interpolation=cv2.INTER_AREA)
-            dim = item.shape
-            path_items.append((item_name, item))
-            all.append((item_name, item))
+            path_and_name = path + "\\" + item_name
+            # item = cv2.imread(path + "\\" + item_name)
+            # item = cv2.resize(item, (1200, 1000), interpolation=cv2.INTER_AREA)
+            # item = FormatPhoto.findAndCut(FormatPhoto.noiseReduction(item, 10), f"{paths_names[index]}")
+            # print(paths_names[index])
+            if paths_names[index] == "pant":
+                reduced, item = clean_item(path_and_name, "pant", dim)
+                # item = item[200:400, 300:400]
+                # item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
+            else:
+                reduced, item = clean_item(path_and_name, "else", dim)
+                # item = item[300:650, 400:800]
+                # item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
+            obj = (item_name, item)
+            path_items.append(obj)
+            all_irrespective_of_types.append(obj)
             plt.imshow(item), plt.show()
         items_verified.append(path_items)
+        index += 1
 
         # color = FormatPhoto.getColor(photo)
 
-    z = 0
-    ind_x = 0
-    ind_y = 0
     db = DB()
-    z = db.collection_types["pair"].count_documents({})
-    combos = []
+    combo_num = db.collection_types["pair"].count_documents({})
+    print(combo_num)
 
     for lists in items_verified:
         for list_items in lists:
-            for item in all:
-                if item not in list_items:
+            for item in all_irrespective_of_types:
+                if item not in lists:
                     comb = np.concatenate((item[1], list_items[1]), axis=0)
                     plt.imshow(comb), plt.show()
                     combo = f"{item[0]}, {list_items[0]}"
-                    name = f"pair_{z}.jpg"
+                    name = f"pair_{combo_num}.jpg"
                     print(output_path)
                     print(name)
                     print(combo)
-                    # ret = db.store_image(prime, path_pairs, f"pair_{z}.jpg", "outfit", combo)
-                    # print(ret)
+                    ret = db.store_image(comb, output_path, f"pair_{combo_num}.jpg", "pair", combo)
+                    print(ret)
                     # image = {
                     #     "name": name,
                     #     "location": location,
@@ -100,10 +124,10 @@ def make_pairs(paths, paths_names, output_path, dim=(400, 200)):
                     #     "combination": combination
                     # }
                     # cv2.imwrite(path_pairs + str(z) + ".jpg", prime)
-                    z += 1
+                    combo_num += 1
 
 
-def set_up_singular(list_of_to_be_done):
+def set_up_singular_item(list_of_to_be_done):
     # def store_image(self, image, location, name, type_of, combination=None):
 
     for f in list_of_to_be_done:
