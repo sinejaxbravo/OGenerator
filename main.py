@@ -74,7 +74,7 @@ def make_pairs(paths_list, paths_names, output_path, dim=(400, 200)):
     db = DB()
     combo_num = db.collection_types["pair"].count_documents({})
     paired = []
-    for lists in items_verified[1:len(items_verified)]:
+    for lists in items_verified:
         for list_items in lists:
             for item in all_irrespective_of_types:
                 set_pair = {item[0], list_items[0]}
