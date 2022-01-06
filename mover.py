@@ -4,8 +4,6 @@ import os
 
 
 
-
-
 # shutil.move("path/to/current/file.foo", "path/to/new/destination/for/file.foo")
 sets = {"1", "2"}
 def make_folder(mode, f):
@@ -35,7 +33,7 @@ def move_files(mode, f):
 # Make sure you have set up the test and the train folders
 # Make the directories before you move anything!
 
-photos = open("../Udemy/Udemy/test.txt", "rt")
-dirtrain = "/Users/stuar/Desktop/TrainingData/food-101/train/"
-dirtest = "/Users/stuar/Desktop/TrainingData/food-101/test/"
-trainpath = "/Users/stuar/Desktop/TrainingData/food-101/food-101/images/"
+# photos = open("../Udemy/Udemy/test.txt", "rt")
+# dirtrain = "/Users/stuar/Desktop/TrainingData/food-101/train/"
+# dirtest = "/Users/stuar/Desktop/TrainingData/food-101/test/"
+# trainpath = "/Users/stuar/Desktop/TrainingData/food-101/food-101/images/"

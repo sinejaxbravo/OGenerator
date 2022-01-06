@@ -14,6 +14,12 @@ path_coat = "C:\\Users\\stuar\\Desktop\\PyProjects\\clothes\\coat\\"
 paths = {"pant": path_pant, "shirt": path_shirt, "outfit": path_outfit, "pair": path_pair, "shoe": path_shoe,
          "coat": path_coat}
 
+images_set = {}
+
+
+def remove_duplicates(image):
+    return image in images_set
+
 
 def make_square():
     x = 0
