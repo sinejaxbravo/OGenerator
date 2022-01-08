@@ -7,6 +7,7 @@ import cv2
 import skimage
 import mediapipe as mp
 
+import Directories
 import FormatPhoto
 import numpy as np
 from matplotlib import pyplot as plt
@@ -56,12 +57,13 @@ def clean_item(path_and_name, clothing_type, dim=(400, 200), iterations=5):
         item = reduced[200:400, 300:400]
         item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
     elif clothing_type == "shoe":
-        item = reduced[100:1100, 100:900]
+        sq = item[300:1000, 300:900]
+        item = np.full((sq.shape[0], sq.shape[1], 3), sq)
         item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
     else:
         item = reduced[200:500, 400:800]
         item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
-
+    plt.imshow(item), plt.show()
     return reduced, item
 
 
@@ -223,6 +225,9 @@ def background_removal():
 
     plt.imshow(img), plt.show()
     cv2.imwrite('reduced.jpg', img)
+
+
+make_squares(Directories.clothing_folders["shoe"], "shoe")
 
 
 # background_removal()

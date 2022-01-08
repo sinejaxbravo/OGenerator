@@ -80,22 +80,13 @@ class test:
     database = DB()
     db = database.collection_types["shirt"]
     print(db.collection_types)
-
-    res = UnsupervisedClustering.train()
-    outfit = database.collection_types["outfit"]
     path = Directories.path_pair
-    outfits = outfit.find({})
+    outfits = db.find({})
     print(outfits)
     for fit in outfits:
         print(fit)
-        temp = fit["pairs"]
-        square = []
-        for t in temp:
-            square.append(f"{path}{t}")
-        print(square)
-        val = UnsupervisedClustering.model(square, res)
-        print(val)
-
+        temp = fit["name"]
+        db.update_one(fit, {"$set":{"name":"fuckyou"}})
     # db.inventory.find({fashionable_likelihood: {$gt: 80}})
 
 

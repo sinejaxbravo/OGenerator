@@ -264,7 +264,7 @@ def fashion_CNN():
                   loss=tf.keras.losses.BinaryCrossentropy(),
                   metrics=['accuracy'])
 
-    history_1 = model.fit(train_data, epochs=30, steps_per_epoch=len(train_data),
+    history_1 = model.fit(train_data, epochs=1, steps_per_epoch=len(train_data),
                           validation_data=test_data, validation_steps=len(test_data), callbacks=[callback1, callback2])
     # predict(model, class_names)
     return model

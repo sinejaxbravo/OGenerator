@@ -2,6 +2,7 @@ import asyncio
 
 import cv2
 import numpy as np
+import scipy.stats
 from matplotlib import pyplot as plt
 
 import Directories
@@ -80,11 +81,18 @@ def generate_all_from_scratch():
 
 
 def get_stats():
+    print("Entered")
     stats = UnsupervisedClustering.model(Directories.dir_pred, res, "x")
+    print(stats)
+    return stats
+
+
 
 
 def update_accuracy():
-
+    stats = get_stats()
+    x_mean = stats[0]
+    y_mean = stats[1]
     database = DB()
     outfit = database.collection_types["outfit"]
     print(db.collection_types)
@@ -97,7 +105,12 @@ def update_accuracy():
             square.append(f"{path}{t}")
         print(square)
         val = UnsupervisedClustering.model(square, res)
-        print(val)
+        percentile = scipy.stats.norm.cdf(val)
+        print(percentile, "\n")
+        percentile = np.average(percentile)
+        outfit.update_one(fit, {"$set": {"fashionable_likelihood": percentile}})
+        print(percentile, " saved!", "\n\n\n")
 
 
-generate_all_from_scratch()
+# get_stats()
+update_accuracy()
