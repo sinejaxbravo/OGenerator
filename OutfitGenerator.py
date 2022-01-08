@@ -95,8 +95,9 @@ def update_accuracy():
         square = []
         for t in temp:
             square.append(f"{path}{t}")
+        print(square)
         val = UnsupervisedClustering.model(square, res)
-        fit["fashionable_likelihood"] = "testersssss"
+        print(val)
 
 
 generate_all_from_scratch()
