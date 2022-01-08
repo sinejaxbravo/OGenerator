@@ -65,8 +65,10 @@ def Affinity(data, labels, mode="x", title="Affinity", scalar=1.):
     clusters = np.unique(yhat)
     print("AFFINITY:")
     # print(clusters)
+    to_ret = []
     if mode != "x":
         for i in range(X.shape[0]):
+            to_ret.append([X[i, 0], X[i, 1]])
             if X[i, 0] < np.average(X[:, 0]) - np.std(X[:, 0]) * scalar and X[i, 1] > np.average(X[:, 1]) + np.std(X[:, 0]) * scalar:
                 cut.append(labels[i])
             if labels[i] in fash:
@@ -77,33 +79,38 @@ def Affinity(data, labels, mode="x", title="Affinity", scalar=1.):
                 plt.scatter(X[i, 0], X[i, 1], c="purple")
                 # print("NOT FASH SET--", labels[i])
                 # print(X[i, 0], X[i, 1], "\n")
+        return to_ret
 
-        print(f"Scalar: {scalar}")
-        cut.sort()
-        cut.sort(key=len)
-        output_path = output[scalar]
-        print(output_path)
-        for i in cut:
-            print(i)
-            t = i[-15:len(i)]
-            print(t)
-            print(output_path+t[0:t.index(".")]+".jpg")
-            copyfile(i, output_path+t[t.index("/"):t.index(".")]+".jpg")
 
-    i = 0
     if mode == "x":
-        for cluster in clusters:
-            print(labels[i])
-            print(X[i], "\n\n")
-            i += 1
-            # get row indexes for samples with this cluster
-            row_ix = np.where(yhat == cluster)
-            # create scatter of these samples
-            plt.scatter(X[row_ix, 0], X[row_ix, 1])
-            print(X[row_ix, 0], X[row_ix, 1], "\n")
-    # show the plot
-    plt.title(f"{title}")
-    plt.show()
+        stats = (np.average(X[:, 0]), np.std(X[:, 0]), np.average(X[:, 1]), np.std(X[:, 0]))
+        return stats
+    #     print(f"Scalar: {scalar}")
+    #     cut.sort()
+    #     cut.sort(key=len)
+    #     output_path = output[scalar]
+    #     print(output_path)
+    #     for i in cut:
+    #         print(i)
+    #         t = i[-15:len(i)]
+    #         print(t)
+    #         print(output_path+t[0:t.index(".")]+".jpg")
+    #         copyfile(i, output_path+t[t.index("/"):t.index(".")]+".jpg")
+    #
+    # i = 0
+    # if mode == "x":
+    #     for cluster in clusters:
+    #         print(labels[i])
+    #         print(X[i], "\n\n")
+    #         i += 1
+    #         # get row indexes for samples with this cluster
+    #         row_ix = np.where(yhat == cluster)
+    #         # create scatter of these samples
+    #         plt.scatter(X[row_ix, 0], X[row_ix, 1])
+    #         print(X[row_ix, 0], X[row_ix, 1], "\n")
+    # # show the plot
+    # plt.title(f"{title}")
+    # plt.show()
 
 
 def Optics(data, labels):
@@ -129,7 +136,7 @@ def Optics(data, labels):
     plt.show()
 
 
-def Mean_Shift(data, labels):
+def Mean_Shift(data, labels, mode):
     X = StandardScaler().fit_transform(data)
     model = MeanShift()
     # fit model and predict clusters
@@ -281,15 +288,23 @@ def extraction(model, image):
     return feature
 
 
-def get_pair_pred(model):
+def get_pair_pred(model, mode="folder", arr = []):
     features = []
+    if mode == "folder":
+        for filename in os.listdir("clothes/pair"):
+            imag = image.load_img(f"clothes/pair/{filename}", target_size=(224, 224))
+            img_array = image.img_to_array(imag)
+            img_batch = np.expand_dims(img_array, 0)
+            prediction = model.predict(img_batch)
+            features.append(prediction)
+    else:
+        for f in arr:
+            imag = image.load_img(f, target_size=(224, 224))
+            img_array = image.img_to_array(imag)
+            img_batch = np.expand_dims(img_array, 0)
+            prediction = model.predict(img_batch)
+            features.append(prediction)
 
-    for filename in os.listdir("clothes/pair"):
-        imag = image.load_img(f"clothes/pair/{filename}", target_size=(224, 224))
-        img_array = image.img_to_array(imag)
-        img_batch = np.expand_dims(img_array, 0)
-        prediction = model.predict(img_batch)
-        features.append(prediction)
     return features
 
 
@@ -316,24 +331,30 @@ def good_bad_outfits(model, set):
 
 
 
-def model():
+def train():
+
     res = NeuralNet.fashion_CNN()
+    return res
+
+
+def model(images, res, mode="m"):
+
     # vgg = VGG16()
     model = res
     model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
-    photos = get_photos(dir_small)
-    pairs = get_pred_photos(dir_pred)
-    pairs = pairs
-    pairs, pair_feats = features_lists(pairs, model)
+    if mode == "x":
+        images = get_photos(images)
+    # pairs = get_pred_photos(dir_pred, mode, images)
+    pairs, pair_feats = features_lists(images, model)
     # DB_SCAN(pair_feats, pair)
     # DB_SCAN(pair_feats, pair, "m")
     # DB_SCAN(pair_feats, pair, "u")
     # Mean_Shift(pair_feats, pair)
     # Affinity(pair_feats, pair)
-    Affinity(pair_feats, pairs, "u", ".5 ", .5)
-    Affinity(pair_feats, pairs, "m")
-    Affinity(pair_feats, pairs, "u", ".5 ", 1.5)
-    Affinity(pair_feats, pairs, "u", ".5 ", 0)
+    # Affinity(pair_feats, pairs, "u", ".5 ", .5)
+    return Affinity(pair_feats, pairs, mode)
+    # Affinity(pair_feats, pairs, "u", ".5 ", 1.5)
+    # Affinity(pair_feats, pairs, "u", ".5 ", 0)
 
 
 
@@ -372,6 +393,3 @@ def model():
     # Affinity(feats, names)
     # Optics(feats, names)
     # K_Nearest(feats, model)
-
-
-model()

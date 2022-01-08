@@ -37,4 +37,3 @@ try:
     server.quit()
 except:
     print('Error sending email! Make sure that python is installed and on path!')
-wrong...')

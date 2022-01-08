@@ -89,13 +89,8 @@ def findAndCut(image, mode="shirt"):
 
 def stitch(one, two):
     # TODO REMOVE THIS
-    x = two
-    two = one
-    one = x
-    prime = cv.resize(one, (two.shape[1], two.shape[0]), interpolation=cv2.INTER_LINEAR)
-    prime = np.concatenate((prime, two), axis=0)
-    plt.imshow(prime), plt.show()
-    return prime
+
+    return np.concatenate((one, two), axis=0)
 
 
 def makeImage(photo):
