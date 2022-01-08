@@ -1,7 +1,15 @@
 import asyncio
+
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+
+import Directories
+import UnsupervisedClustering
 from Weather import extract_weather
 import Directories as dir
-from main import make_pairs
+from DB import DB
+from main import make_pairs, make_squares
 
 sesh = asyncio.new_event_loop()
 temperature, precipitation, overcast = sesh.run_until_complete(extract_weather())
@@ -13,17 +21,77 @@ paths = dir.clothing_folders
 paths_to_use = [paths["pant"], paths["shirt"], paths["coat"], paths["shoe"]]
 names = ["pant", "shirt", "coat", "shoe"]
 output_path_to_use = paths["pair"]
-
-pant_shirt = make_pairs([paths["pant"], paths["shirt"]], ["pant", "shirt"], output_path_to_use)
-print(pant_shirt)
-
-# pant_shoe = make_pairs([paths["pant"], paths["shoe"]], ["pant", "shoe"], output_path_to_use)
-# pant_coat = make_pairs([paths["pant"], paths["coat"]], ["pant", "coat"], output_path_to_use)
-# shoe_shirt = make_pairs([paths["shoe"], paths["shirt"]], ["shoe", "shirt"], output_path_to_use)
-# shoe_coat = make_pairs([paths["shoe"], paths["coat"]], ["shoe", "coat"], output_path_to_use)
-# coat_shirt = make_pairs([paths["coat"], paths["shirt"]], ["coat", "shirt"], output_path_to_use)
-
-with_coat = []
-without_coat = []
+#
+#
+db = DB()
 
 
+def stitch(o, t, combo_num, output_path):
+    comb = np.concatenate((o[1], t[1]), axis=0)
+    plt.imshow(comb), plt.show()
+    combo = f"{o[0]}, {t[0]}"
+    name = f"pair_{combo_num}.jpg"
+    print(output_path)
+    print(name)
+    print(combo)
+    ret = db.store_image(comb, output_path, f"pair_{combo_num}.jpg", "pair", combo)
+    print(ret)
+    return f"pair_{combo_num}.jpg", comb
+
+
+
+def generate_all_from_scratch():
+    pants = make_squares(paths["pant"], "pant")
+
+    shoes = make_squares(paths["shoe"], "shoe")
+
+    shirt = make_squares(paths["shirt"], "shirt")
+
+    coat = make_squares(paths["coat"], "coat")
+
+
+
+    with_c = []
+    without_c = []
+    c_num = 1
+    wc = []
+    woc = []
+    outfit_num = 0
+    for p in pants:
+        for s in shoes:
+            retps, ps = stitch(p, s, c_num, output_path_to_use)
+            for sh in shirt:
+                retpsh, psh = stitch(p, sh, c_num + 1, output_path_to_use)
+                retpssh, ssh = stitch(s, sh, c_num + 3, output_path_to_use)
+                for c in coat:
+                    wc = [retps, retpsh, retpssh]
+                    woc = [retps, retpsh, retpssh]
+                    ret, pc = stitch(p, c, c_num + 2, output_path_to_use)
+                    wc.append(ret)
+                    ret, sc = stitch(s, c, c_num + 4, output_path_to_use)
+                    wc.append(ret)
+                    ret, shc = stitch(sh, c, c_num + 5, output_path_to_use)
+                    wc.append(ret)
+                    c_num += 6
+                    db.add_outfits(outfit_num, [p[0], s[0], sh[0]], "0", 0, woc, "no")
+                    db.add_outfits(outfit_num+1, [p[0], s[0], sh[0], c[0]], "0", 0, wc, "yes")
+                    outfit_num += 2
+
+
+
+def update_accuracy():
+    res = UnsupervisedClustering.train()
+    outfit = db.collection_types["outfit"]
+    print(db.collection_types)
+    path = Directories.path_pair
+    outfits = outfit.find()
+    for fit in outfits:
+        temp = fit["pairs"]
+        square = []
+        for t in temp:
+            square.append(f"{path}{t}")
+        val = UnsupervisedClustering.model(square, res)
+        fit["fashionable_likelihood"] = "testersssss"
+
+
+generate_all_from_scratch()

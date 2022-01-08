@@ -4,6 +4,10 @@ import cv2
 import pymongo
 from pymongo.collection import Collection
 from pymongo.message import query
+from pymongo import MongoClient
+
+import Directories
+import UnsupervisedClustering
 
 
 class DB:
@@ -18,23 +22,24 @@ class DB:
     print(mydb.list_collection_names())
 
 
+
     def pull_squares_to_permut(self, new_item):
         1
         # TODO this is what you call to get all of the square of different type.
 
-    def add_outfits(self, location, name, items, temperature, percentage):
+    def add_outfits(self, name, items, temperature, percentage, pairs, coat):
         collection = self.collection_types["outfit"]
-        print(f"DB: LOCATION {location}, NAME {name}")
         combination = ""
         for x in items:
             combination += str(x) + ", "
 
         image = {
             "name": name,
-            "location": location,
             "combination": combination,
             "temperature": temperature,
-            "fashionable_liklihood": percentage,
+            "fashionable_likelihood": percentage,
+            "pairs": pairs,
+            "coat": coat,
             "date": datetime.datetime.utcnow(),
 
         }
@@ -73,16 +78,26 @@ class DB:
 
 class test:
     database = DB()
+    db = database.collection_types["shirt"]
+    print(db.collection_types)
 
-    db = database.collection_types["pair"]
-    print(db.count_documents({}))
-    tester = []
-    a = {1, 2}
+    res = UnsupervisedClustering.train()
+    outfit = db.collection_types["outfit"]
+    path = Directories.path_pair
+    outfits = outfit.find()
+    print(outfits)
+    for fit in outfits:
+        print(fit)
+        temp = fit["pairs"]
+        square = []
+        for t in temp:
+            square.append(f"{path}{t}")
+        print(square)
+        val = UnsupervisedClustering.model(square, res)
+        print(val)
 
-    b = {1, 2}
+    # db.inventory.find({fashionable_likelihood: {$gt: 80}})
 
-    tester.append(a)
-    print(b in tester)
 
 
 

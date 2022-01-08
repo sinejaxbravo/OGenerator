@@ -48,46 +48,81 @@ def test_removal(image):
 def clean_item(path_and_name, clothing_type, dim=(400, 200), iterations=5):
     item = cv2.imread(path_and_name)
     item = cv2.resize(item, (1200, 1000), interpolation=cv2.INTER_AREA)
-    reduced = FormatPhoto.findAndCut(FormatPhoto.noiseReduction(item, iterations), clothing_type)
+    if clothing_type != "shoe":
+        reduced = FormatPhoto.findAndCut(FormatPhoto.noiseReduction(item, iterations), clothing_type)
+    else:
+        reduced = item
     if clothing_type == "pant":
         item = reduced[200:400, 300:400]
         item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
+    elif clothing_type == "shoe":
+        item = reduced[100:1100, 100:900]
+        item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
     else:
-        item = reduced[300:600, 400:800]
+        item = reduced[200:500, 400:800]
         item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
 
     return reduced, item
 
 
+def make_squares(path, item_type, dim=(400, 200)):
+    path_items = []
+    for item_name in os.listdir(path):
+        path_and_name = path + item_name
+        # item = cv2.imread(path + "\\" + item_name)
+        # item = cv2.resize(item, (1200, 1000), interpolation=cv2.INTER_AREA)
+        # item = FormatPhoto.findAndCut(FormatPhoto.noiseReduction(item, 10), f"{paths_names[index]}")
+        # print(paths_names[index])
+        if item_type == "pant":
+            reduced, item = clean_item(path_and_name, "pant", dim)
+            # item = item[200:400, 300:400]
+            # item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
+        elif item_type == "shoe":
+            reduced, item = clean_item(path_and_name, "shoe", dim, iterations=0)
+        else:
+            reduced, item = clean_item(path_and_name, "else", dim)
+            # item = item[300:650, 400:800]
+            # item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
+        obj = (path_and_name, item)
+        path_items.append(obj)
+        plt.imshow(item), plt.show()
+    return path_items
+
+
+
 # TODO save the square of each photo with a link to it (and its name)so in the future we can simply pair
 #  the new item with all of the and dont have to iterate through and recut all of the previous squares
 
-def make_pairs(paths_list, paths_names, output_path, dim=(400, 200)):
+def make_pairs(paths_list, paths_names, output_path, dim=(400, 200), with_squares=True, images=[], all_=[]):
     all_irrespective_of_types = []
     items_verified = []
     index = 0
-    for path in paths_list:
-        path_items = []
-        for item_name in os.listdir(path):
-            path_and_name = path + "\\" + item_name
-            # item = cv2.imread(path + "\\" + item_name)
-            # item = cv2.resize(item, (1200, 1000), interpolation=cv2.INTER_AREA)
-            # item = FormatPhoto.findAndCut(FormatPhoto.noiseReduction(item, 10), f"{paths_names[index]}")
-            # print(paths_names[index])
-            if paths_names[index] == "pant":
-                reduced, item = clean_item(path_and_name, "pant", dim)
-                # item = item[200:400, 300:400]
-                # item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
-            else:
-                reduced, item = clean_item(path_and_name, "else", dim)
-                # item = item[300:650, 400:800]
-                # item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
-            obj = (path_and_name, item)
-            path_items.append(obj)
-            all_irrespective_of_types.append(obj)
-            plt.imshow(item), plt.show()
-            items_verified.append(path_items)
-        index += 1
+    if with_squares:
+        for path in paths_list:
+            path_items = []
+            for item_name in os.listdir(path):
+                path_and_name = path + "\\" + item_name
+                # item = cv2.imread(path + "\\" + item_name)
+                # item = cv2.resize(item, (1200, 1000), interpolation=cv2.INTER_AREA)
+                # item = FormatPhoto.findAndCut(FormatPhoto.noiseReduction(item, 10), f"{paths_names[index]}")
+                # print(paths_names[index])
+                if paths_names[index] == "pant":
+                    reduced, item = clean_item(path_and_name, "pant", dim)
+                    # item = item[200:400, 300:400]
+                    # item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
+                else:
+                    reduced, item = clean_item(path_and_name, "else", dim)
+                    # item = item[300:650, 400:800]
+                    # item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
+                obj = (path_and_name, item)
+                path_items.append(obj)
+                all_irrespective_of_types.append(obj)
+                plt.imshow(item), plt.show()
+                items_verified.append(path_items)
+            index += 1
+    else:
+        items_verified = images
+        all_irrespective_of_types = all_
 
         # color = FormatPhoto.getColor(photo)
 

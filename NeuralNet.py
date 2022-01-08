@@ -331,6 +331,6 @@ def item_type_CNN():
 
 
 # build_CNN()
-fashion_CNN()
+# fashion_CNN()
 
 # item_type_CNN()
