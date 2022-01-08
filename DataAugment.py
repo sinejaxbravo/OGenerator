@@ -44,8 +44,13 @@ def make_square():
                 print(pants.shape, square.shape)
                 prime = np.concatenate((square, pants), axis=0)
                 prime2 = np.concatenate((pants, square), axis=0)
+
                 print(prime.shape)
                 plt.imshow(prime), plt.show()
                 plt.imshow(prime2), plt.show()
                 cv2.imwrite(path2 + f"\\s{folder}\\" + filename, prime2)
                 cv2.imwrite(path2 + f"\\s{folder}\\" + "flip_" + filename, prime)
+
+
+
+make_square()

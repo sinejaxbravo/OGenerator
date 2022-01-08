@@ -15,6 +15,9 @@ dir_1 = "./clothes/predicted_1"
 dir_15 = "./clothes/predicted_1dot5"
 dir_5 = "./clothes/predicted_dot5"
 dir_zip = "./clothes/predicted_zip"
-output = {1: dir_1, 1.5: dir_15, .5: dir_5, 0: dir_zip}
-paths = {"pant": path_pant, "shirt": path_shirt, "outfit": path_outfit, "pair": path_pair, "shoe": path_shoe,
-         "coat": path_coat}
+
+clothing_folders = {"pant": path_pant, "shirt": path_shirt, "outfit": path_outfit, "pair": path_pair, "shoe": path_shoe,
+         "coat": path_coat }
+fashionable_output = {1: dir_1, 1.5: dir_15, .5: dir_5, 0: dir_zip}
+
+neural_net = {"train": dirtrain, "test": dirtest, "outfit": dir_pred}

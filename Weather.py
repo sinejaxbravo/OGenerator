@@ -6,6 +6,8 @@ import asyncio
 
 
 async def extract_weather():
+
+
     client = python_weather.Client(format=python_weather.IMPERIAL)
     try:
         location = Geo.location()
@@ -18,11 +20,11 @@ async def extract_weather():
         print(f"Temp: {temperature}")
         print(f"Precipitation: {precipitation}")
         await client.close()
+
+        return temperature, precipitation, overcast
     except:
         print("Something went wrong gathering your weather information")
 
 
-sesh = asyncio.new_event_loop()
-sesh.run_until_complete(extract_weather())
-
-
+class Weather:
+    pass

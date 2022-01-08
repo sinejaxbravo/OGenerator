@@ -5,6 +5,7 @@ import time
 
 import cv2
 import skimage
+import mediapipe as mp
 
 import FormatPhoto
 import numpy as np
@@ -24,16 +25,35 @@ paths = {"pant": path_pant, "shirt": path_shirt, "outfit": path_outfit, "pair": 
          "coat": path_coat}
 
 
+
+def test_removal(image):
+
+    image = cv2.imread("./clothes/shirt/IMG_0675.jpg")
+    RGB = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    # initialize mediapipe
+    mp_selfie_segmentation = mp.solutions.selfie_segmentation
+    selfie_segmentation = mp_selfie_segmentation.SelfieSegmentation(model_selection=1)
+    # get the result
+    results = selfie_segmentation.process(RGB)
+    # extract segmented mask
+    mask = results.segmentation_mask
+    # show outputs
+    cv2.imshow("mask", cv2.resize(mask, (300, 300), interpolation=cv2.INTER_AREA))
+    cv2.imshow("image", cv2.resize(image, (300, 300), interpolation=cv2.INTER_AREA))
+    time.sleep(10)
+
+
+
 # TODO REDUCED IS THE BACKGROUND REMOVED. ITEM IS JUST THE SQUARE
-def clean_item(path_and_name, clothing_type, dim=(400, 200)):
+def clean_item(path_and_name, clothing_type, dim=(400, 200), iterations=5):
     item = cv2.imread(path_and_name)
     item = cv2.resize(item, (1200, 1000), interpolation=cv2.INTER_AREA)
-    reduced = FormatPhoto.findAndCut(FormatPhoto.noiseReduction(item, 10), clothing_type)
-    if type == "pant":
+    reduced = FormatPhoto.findAndCut(FormatPhoto.noiseReduction(item, iterations), clothing_type)
+    if clothing_type == "pant":
         item = reduced[200:400, 300:400]
         item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
     else:
-        item = reduced[300:650, 400:800]
+        item = reduced[300:600, 400:800]
         item = cv2.resize(item, (dim[0], dim[1]), interpolation=cv2.INTER_AREA)
 
     return reduced, item
@@ -74,6 +94,7 @@ def make_pairs(paths_list, paths_names, output_path, dim=(400, 200)):
     db = DB()
     combo_num = db.collection_types["pair"].count_documents({})
     paired = []
+
     for lists in items_verified:
         for list_items in lists:
             for item in all_irrespective_of_types:
@@ -97,6 +118,7 @@ def make_pairs(paths_list, paths_names, output_path, dim=(400, 200)):
                     # }
                     # cv2.imwrite(path_pairs + str(z) + ".jpg", prime)
                     combo_num += 1
+    return paired
 
 
 def set_up_singular_item(list_of_to_be_done):
@@ -171,7 +193,7 @@ def background_removal():
 # background_removal()
 # make_square()
 
-paths_to_use = [paths["pant"], paths["shirt"], paths["coat"]]
-names = ["pant", "shirt", "coat"]
-output_path_to_use = paths["pair"]
-make_pairs(paths_to_use, names, output_path_to_use)
+# paths_to_use = [paths["pant"], paths["shirt"], paths["coat"]]
+# names = ["pant", "shirt", "coat"]
+# output_path_to_use = paths["pair"]
+# make_pairs(paths_to_use, names, output_path_to_use)

@@ -22,7 +22,26 @@ class DB:
         1
         # TODO this is what you call to get all of the square of different type.
 
+    def add_outfits(self, location, name, items, temperature, percentage):
+        collection = self.collection_types["outfit"]
+        print(f"DB: LOCATION {location}, NAME {name}")
+        combination = ""
+        for x in items:
+            combination += str(x) + ", "
 
+        image = {
+            "name": name,
+            "location": location,
+            "combination": combination,
+            "temperature": temperature,
+            "fashionable_liklihood": percentage,
+            "date": datetime.datetime.utcnow(),
+
+        }
+        ret_code = collection.insert_one(image).inserted_id
+        # print(collection)
+        # print(ret_code)
+        return ret_code
 
     def favorite_a_combo(self, combo):
         1

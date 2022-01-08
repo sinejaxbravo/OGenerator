@@ -24,11 +24,11 @@ urbanoutfitters = "https://www.urbanoutfitters.com/womens-tops?page=8"
 
 # Reiss works! https://www.reiss.com/us/mens/coats-jackets/jackets/
 # Best website yet!!! SSENSE
-mens = "https://www.ssense.com/en-us/men/designers/connor-mcknight/clothing"
+mens = "https://www.ssense.com/en-us/men/designers/dries-van-noten/clothing?page=9"
 
 women = "https://www.ssense.com/en-us/women/clothing?page=8"
 
-x = 24200
+x = 27000
 pg = 3
 s = Service(path)
 
