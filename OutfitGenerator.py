@@ -10,7 +10,7 @@ from Weather import extract_weather
 import Directories as dir
 from DB import DB
 from main import make_pairs, make_squares
-
+res = UnsupervisedClustering.train()
 sesh = asyncio.new_event_loop()
 temperature, precipitation, overcast = sesh.run_until_complete(extract_weather())
 # print(temperature)
@@ -79,9 +79,14 @@ def generate_all_from_scratch():
 
 
 
+def get_stats():
+    stats = UnsupervisedClustering.model(Directories.dir_pred, res, "x")
+
+
 def update_accuracy():
-    res = UnsupervisedClustering.train()
-    outfit = db.collection_types["outfit"]
+
+    database = DB()
+    outfit = database.collection_types["outfit"]
     print(db.collection_types)
     path = Directories.path_pair
     outfits = outfit.find()

@@ -82,9 +82,9 @@ class test:
     print(db.collection_types)
 
     res = UnsupervisedClustering.train()
-    outfit = db.collection_types["outfit"]
+    outfit = database.collection_types["outfit"]
     path = Directories.path_pair
-    outfits = outfit.find()
+    outfits = outfit.find({})
     print(outfits)
     for fit in outfits:
         print(fit)

@@ -80,6 +80,11 @@ def Affinity(data, labels, mode="x", title="Affinity", scalar=1.):
                 # print("NOT FASH SET--", labels[i])
                 # print(X[i, 0], X[i, 1], "\n")
         return to_ret
+
+
+    if mode == "x":
+        stats = (np.average(X[:, 0]), np.std(X[:, 0]), np.average(X[:, 1]), np.std(X[:, 0]))
+        return stats
     #     print(f"Scalar: {scalar}")
     #     cut.sort()
     #     cut.sort(key=len)
@@ -131,7 +136,7 @@ def Optics(data, labels):
     plt.show()
 
 
-def Mean_Shift(data, labels):
+def Mean_Shift(data, labels, mode):
     X = StandardScaler().fit_transform(data)
     model = MeanShift()
     # fit model and predict clusters
@@ -332,12 +337,13 @@ def train():
     return res
 
 
-def model(images, res):
+def model(images, res, mode="m"):
 
     # vgg = VGG16()
     model = res
     model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
-    # photos = get_photos(dir_small)
+    if mode == "x":
+        images = get_photos(images)
     # pairs = get_pred_photos(dir_pred, mode, images)
     pairs, pair_feats = features_lists(images, model)
     # DB_SCAN(pair_feats, pair)
@@ -346,7 +352,7 @@ def model(images, res):
     # Mean_Shift(pair_feats, pair)
     # Affinity(pair_feats, pair)
     # Affinity(pair_feats, pairs, "u", ".5 ", .5)
-    return Affinity(pair_feats, pairs, "m")
+    return Affinity(pair_feats, pairs, mode)
     # Affinity(pair_feats, pairs, "u", ".5 ", 1.5)
     # Affinity(pair_feats, pairs, "u", ".5 ", 0)
 
