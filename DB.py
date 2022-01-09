@@ -1,12 +1,16 @@
 import datetime
 
 import cv2
+import numpy as np
 import pymongo
+import scipy
+from scipy import stats
 from pymongo.collection import Collection
 from pymongo.message import query
 from pymongo import MongoClient
 
 import Directories
+import NeuralNet
 import UnsupervisedClustering
 
 
@@ -27,7 +31,7 @@ class DB:
         1
         # TODO this is what you call to get all of the square of different type.
 
-    def add_outfits(self, name, items, temperature, percentage, pairs, coat):
+    def add_outfits(self, name, items, temperature, percentage, pairs, coat, distance=None):
         collection = self.collection_types["outfit"]
         combination = ""
         for x in items:
@@ -40,6 +44,7 @@ class DB:
             "fashionable_likelihood": percentage,
             "pairs": pairs,
             "coat": coat,
+            "distance":distance,
             "date": datetime.datetime.utcnow(),
 
         }
@@ -77,26 +82,42 @@ class DB:
 
 
 class test:
-    database = DB()
-    db = database.collection_types["shirt"]
-    print(db.collection_types)
+    l = [[9, 8], [9, 88], [0, 4]]
+    l = np.array(l)
+    l = scipy.stats.zscore(l)
+    print(scipy.stats.norm.cdf(l))
 
-    res = UnsupervisedClustering.train()
-    outfit = database.collection_types["outfit"]
-    path = Directories.path_pair
-    outfits = outfit.find({})
-    print(outfits)
-    for fit in outfits:
-        print(fit)
-        temp = fit["pairs"]
-        square = []
-        for t in temp:
-            square.append(f"{path}{t}")
-        print(square)
-        val = UnsupervisedClustering.model(square, res)
-        print(val)
+    # res = NeuralNet.fashion_CNN()
+    # stats = UnsupervisedClustering.model(Directories.dir_5, res, "x")
+    # x_mean = stats[0]
+    # y_mean = stats[1]
+    # database = DB()
+    # outfit = database.collection_types["outfit"]
+    #
+    # path = Directories.path_pair
+    # outfits = outfit.find()
+    # for fit in outfits:
+    #     temp = fit["pairs"]
+    #     square = []
+    #     for t in temp:
+    #         square.append(f"{path}{t}")
+    #     print(square)
+    #     val = UnsupervisedClustering.model(square, res)
+    #
+    #     print(val)
+    #
+    #     percentile = scipy.stats.norm.cdf(val)
+    #     print(f"Percent chance: {percentile}")
+    #     new_percent = []
+    #     for p in percentile:
+    #         new_percent.append([p[0], 1. - p[1]])
+    #     print(new_percent)
+    #     percentile = np.average(percentile)
+    #     new_percent = np.average(new_percent)
+    #     print(percentile)
+    #     print(new_percent)
 
-    # db.inventory.find({fashionable_likelihood: {$gt: 80}})
+
 
 
 
