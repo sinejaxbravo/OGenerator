@@ -227,7 +227,7 @@ def background_removal():
     cv2.imwrite('reduced.jpg', img)
 
 
-make_squares(Directories.clothing_folders["shoe"], "shoe")
+# make_squares(Directories.clothing_folders["shoe"], "shoe")
 
 
 # background_removal()
