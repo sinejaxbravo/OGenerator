@@ -1,13 +1,9 @@
-import tracemalloc
-
 import Geo
 import python_weather
-import asyncio
+
 
 
 async def extract_weather():
-
-
     client = python_weather.Client(format=python_weather.IMPERIAL)
     try:
         location = Geo.location()

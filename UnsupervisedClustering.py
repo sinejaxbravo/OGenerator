@@ -35,37 +35,16 @@ dir_zip = "./clothes/predicted_zip"
 
 output = {1: dir_1, 1.5: dir_15, .5: dir_5, 0: dir_zip}
 
-# for o in output:
-#     for x in output[o]:
-#         os.remove(x)
-
-
-# fash = ["./clothes/pair/4.jpg", "./clothes/pair/5.jpg",
-#         "./clothes/pair/7.jpg", "./clothes/pair/8.jpg",
-#         "./clothes/pair/10.jpg", "./clothes/pair/18.jpg", "./clothes/pair/23.jpg",
-#         "./clothes/pair/56.jpg", "./clothes/pair/68.jpg", "./clothes/pair/69.jpg",
-#         "./clothes/pair/70.jpg", "./clothes/pair/79.jpg", "./clothes/pair/102.jpg"]
-#
-# not_fash = ["./clothes/pair/2.jpg", "./clothes/pair/21.jpg",
-#             "./clothes/pair/22.jpg", "./clothes/pair/64.jpg",
-#             "./clothes/pair/49.jpg", "./clothes/pair/50.jpg", "./clothes/pair/51.jpg",
-#             "./clothes/pair/132.jpg", "./clothes/pair/135.jpg", "./clothes/pair/127.jpg",
-#             "./clothes/pair/178.jpg", "./clothes/pair/181.jpg"]
-
 
 def Affinity(data, labels, mode="x", title="Affinity", scalar=1.):
     cut = []
     X = StandardScaler().fit_transform(data)
     print(X)
     model = AffinityPropagation(damping=0.9, random_state=None)
-    # fit the model
     model.fit(X)
-    # assign a cluster to each example
     yhat = model.predict(X)
-    # retrieve unique clusters
     clusters = np.unique(yhat)
     print("AFFINITY:")
-    # print(clusters)
     to_ret = []
     if mode != "x":
         for i in range(X.shape[0]):
@@ -161,15 +140,12 @@ def train():
 def model(images, res, mode="m", pca=False):
     # vgg = VGG16()
     model = res
-    model = Model(inputs=model.inputs, outputs=model.layers[-2].output)
+    model = Model(inputs=model.inputs, outputs=model.layers[-1].output)
     if pca:
         pair, pair_feats = get_photos_and_features(res)
         PCA_And_K_Means(pair_feats)
 
     else:
-        # if mode == "m":
-        #     images = get_photos(images)
-    # pairs = get_pred_photos(dir_pred, mode, images)
         pairs, pair_feats = features_lists(images, model)
 
         return Affinity(pair_feats, pairs, mode)

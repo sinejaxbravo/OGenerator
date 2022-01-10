@@ -1,5 +1,3 @@
-import time
-
 import cv2
 import cv2 as cv
 from matplotlib import pyplot as plt
@@ -30,7 +28,6 @@ def makeMask(image, color):
         for y in range(image.shape[1]):
             if np.average(image[x, y] - color) > 50:
                 image[x, y] = [255, 255, 255]
-
 
 
 def noiseReduction(image, color, iterationCount=6):
@@ -85,12 +82,6 @@ def findAndCut(image, mode="shirt"):
                 break
         image = image[lastIJ:image.shape[0], 0:image.shape[1]]
     return image
-
-
-def stitch(one, two):
-    # TODO REMOVE THIS
-
-    return np.concatenate((one, two), axis=0)
 
 
 def makeImage(photo):

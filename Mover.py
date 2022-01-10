@@ -2,9 +2,6 @@ import shutil
 import os
 
 
-
-
-# shutil.move("path/to/current/file.foo", "path/to/new/destination/for/file.foo")
 sets = {"1", "2"}
 def make_folder(mode, f):
     for x in f:
