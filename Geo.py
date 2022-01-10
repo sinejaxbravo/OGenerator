@@ -9,4 +9,4 @@ def location():
     current_location = (city, state, zip)
     return current_location
 
-location()
+# location()

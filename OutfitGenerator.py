@@ -1,6 +1,7 @@
 import asyncio
 import math
 import os
+import random
 import time
 
 import cv2
@@ -19,7 +20,7 @@ import UnsupervisedClustering
 from Weather import extract_weather
 import Directories as dir
 from DB import DB
-from main import make_pairs, make_squares
+from DataPrep import make_pairs, make_squares
 
 sesh = asyncio.new_event_loop()
 temperature, precipitation, overcast = sesh.run_until_complete(extract_weather())
@@ -51,20 +52,18 @@ def stitch(o, t, combo_num, output_path):
 
 def generate_all_from_scratch():
     pants = make_squares(paths["pant"], "pant")
-
+    # TODO UNCOMMENT IF YOU WANT SHOES
     # shoes = make_squares(paths["shoe"], "shoe")
 
     shirt = make_squares(paths["shirt"], "shirt")
 
     coat = make_squares(paths["coat"], "coat")
 
-    with_c = []
-    without_c = []
     c_num = 1
-    wc = []
-    woc = []
+
     outfit_num = 0
     for p in pants:
+        # TODO UNCOMMENT IF YOU WANT SHOES
         # for s in shoes:
         #     retps, ps = stitch(p, s, c_num, output_path_to_use)
         for sh in shirt:
@@ -81,13 +80,6 @@ def generate_all_from_scratch():
                 db.add_outfits(outfit_num + 1, [p[0], sh[0], c[0]], "0", 0, wc, "yes")
                 outfit_num += 1
             outfit_num += 1
-
-
-# def get_stats():
-#     stats = UnsupervisedClustering.model(Directories.dir_zip, res, "x")
-#     # stats = UnsupervisedClustering.model(Directories.dir_zip, res, "x")
-#     print(stats)
-#     return stats
 
 
 def predict(model, photos):
@@ -121,20 +113,14 @@ def get_dist(arr):
 
     return dist
 
-
+# TODO NOT USED IN THIS CLASS!
 def Affinity(data, labels):
     X = StandardScaler().fit_transform(data)
     model = AffinityPropagation(damping=0.9, random_state=None)
-    # fit the model
     model.fit(X)
-    # assign a cluster to each example
     yhat = model.predict(X)
-    # retrieve unique clusters
     clusters = np.unique(yhat)
-    # print(clusters)
-
     return X, labels
-    # return np.average(X[:, 0]), np.average(X[:, 1])
 
 
 def features_lists(model):
@@ -156,24 +142,18 @@ def features_lists(model):
 
 
 def update_accuracy():
-    l = [[9, 8], [-9, -88], [0, 4]]
-    l = np.array(l)
-    print(scipy.stats.zscore(l[:, 1]))
     res = UnsupervisedClustering.train()
     database = DB()
     outfit = database.collection_types["outfit"]
 
     pairs, pair_feats = features_lists(res)
-
+    # TODO UNCOMMENT TO USE AFFINITY CLUSTERING
     # X, labels = Affinity(pair_feats, pairs)
     X = StandardScaler().fit_transform(pair_feats)
     print(db.collection_types)
-    path = Directories.path_pair
     outfits = outfit.find()
     l_label = pairs.tolist()
-    print(pairs)
-    print(len(pairs))
-    print(len(X))
+
     for fit in outfits:
         print("name: ", fit["name"])
         temp = fit["pairs"]
@@ -199,13 +179,67 @@ def update_accuracy():
         time.sleep(.01)
 
 
-def get_best():
+def get_best(criteria, sort=True, collection_name=None):
     database = DB()
+    tot = 0
     outfit = database.collection_types["outfit"]
-    outfits = outfit.find().sort({"distance": 1})
+    if sort:
+        outfits = outfit.find().sort("fashionable_likelihood", 1)
+    else:
+        outfits = outfit.find(criteria)
+
     for fit in outfits:
-        print(fit["name"], fit["distance"])
-        time.sleep(4)
+        print("name: ", fit["name"], " distance: ", fit["distance"], " likely: ", fit["fashionable_likelihood"],
+              "pairs: ", fit["pairs"])
+        ret_code = database.collection_types[collection_name].insert_one(fit).inserted_id
+        print(ret_code)
+        tot += 1
+        time.sleep(.002)
+    print(f"\nTotal items: {tot}\n\n\n")
+
+
+def get_outfit():
+    count = db.collection_types["stack"].count_documents({})
+    rand = db.collection_types["stack"].find().limit(1).skip(random.randint(0, count))
+    seshion = asyncio.new_event_loop()
+    temp, precip, overc = seshion.run_until_complete(extract_weather())
+    resp = "y"
+    for r in rand:
+        if int(temp) < 55 and r["coat"] == "yes":
+            print("\nOUTFIT-- name: ", r["name"], " distance: ", r["distance"], " likely: ",
+                  r["fashionable_likelihood"],
+                  "pairs: ", r["pairs"])
+            items = []
+            item_str = (r["combination"].replace("\\", "/")).replace(" ", "")
+            print(item_str)
+            while item_str.find(",") != -1:
+                ind = item_str.index(",")
+                item = item_str[0: ind]
+                imag = plt.imread(item)
+                plt.imshow(imag)
+                plt.show()
+                item_str = item_str[ind+1:len(item_str)]
+                print(item_str)
+            to_save = input("Favorite item? y/n: ").upper()
+            if to_save == "N":
+                ret = db.collection_types["stack"].delete_one(r)
+                print(ret)
+            resp = input("\nGo ahead and wear outfit y/n?: ")
+        else:
+            get_outfit()
+    if resp.upper() == "N":
+        get_outfit()
+
 
 # generate_all_from_scratch()
-update_accuracy()
+# update_accuracy()
+# get_best(None, True)
+# criteria = {"fashionable_likelihood": {"$gt": .70}, "distance": {"$gt": .2}}
+# get_best(criteria, False, "stack")
+
+# fit = db.collection_types["outfit"].find({"name": 193})
+# for f in fit:
+#     ret_code = db.collection_types["stack"].insert_one(f).inserted_id
+#     print(ret_code)
+get_outfit()
+
