@@ -9,7 +9,6 @@ class DB:
     mydb = myclient["fashionphotos"]
     collection_types = Directories.collection_types
 
-    # TODO this is what you call to get all of the square of different type.
     def pull_squares_to_permut(self, new_item):
         self
 
@@ -33,7 +32,7 @@ class DB:
         ret_code = collection.insert_one(image).inserted_id
         return ret_code
 
-    # TODO add the params so the combo can be easily passed in here
+
     def favorite_a_combo(self, combo):
         self
 

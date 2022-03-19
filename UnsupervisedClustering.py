@@ -11,7 +11,6 @@ import tensorflow as tf
 import numpy as np
 
 from sklearn.cluster import KMeans, DBSCAN, MeanShift, OPTICS, AffinityPropagation
-from sklearn.neighbors import KNeighborsClassifier, kneighbors_graph, NearestNeighbors
 from tensorflow.keras.preprocessing import image
 
 from tensorflow.python.keras.models import Model
@@ -23,18 +22,32 @@ from sklearn.decomposition import PCA
 
 import NeuralNet
 
+
+# dir_large is for training on our larger data set
 dir_large = "/Users/stuar/Desktop/TrainingData/unsupervised"
 dir_small = "/Users/stuar/Desktop/TrainingData/unsupervised_small"
 
+# dir_pred is our prediction folder for pairs of items
 dir_pred = "clothes/pair"
 
+# dir_standardDeviation so dir_1 is 1 S.D. away. Used for clsutering
 dir_1 = "./clothes/predicted_1"
 dir_15 = "./clothes/predicted_1dot5"
 dir_5 = "./clothes/predicted_dot5"
 dir_zip = "./clothes/predicted_zip"
 
+
 output = {1: dir_1, 1.5: dir_15, .5: dir_5, 0: dir_zip}
 
+""""
+Affinity:
+    method that takes in:
+        data which are the extracted features
+        labels which are used to reference the class the features belong to
+        
+        
+
+"""
 
 def Affinity(data, labels, mode="x", title="Affinity", scalar=1.):
     cut = []
@@ -52,11 +65,6 @@ def Affinity(data, labels, mode="x", title="Affinity", scalar=1.):
             if X[i, 0] < np.average(X[:, 0]) - np.std(X[:, 0]) * scalar and X[i, 1] > np.average(X[:, 1]) + np.std(
                     X[:, 1]) * scalar:
                 cut.append(labels[i])
-
-            # plt.scatter(X[i, 0], X[i, 1], c="red")
-            # print("FASH SET--", labels[i])
-            # print(X[i, 0], X[i, 1], "\n")
-        # plt.show()
         return to_ret
 
     if mode == "x":
@@ -108,7 +116,6 @@ def features_lists(directory, model):
 
 
 def extraction(model, image):
-    # print(img.shape)
     feature = model.predict(image, use_multiprocessing=True)
     return feature
 
@@ -137,7 +144,7 @@ def train():
     return res
 
 
-def model(images, res, mode="m", pca=False):
+def model(images, res, mode="default", pca=False):
     # vgg = VGG16()
     model = res
     model = Model(inputs=model.inputs, outputs=model.layers[-1].output)
@@ -149,5 +156,4 @@ def model(images, res, mode="m", pca=False):
         pairs, pair_feats = features_lists(images, model)
 
         return Affinity(pair_feats, pairs, mode)
-    # Affinity(pair_feats, pairs, "u", ".5 ", 1.5)
-    # Affinity(pair_feats, pairs, "u", ".5 ", 0)
+

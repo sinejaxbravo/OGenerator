@@ -39,35 +39,12 @@ def block_norm(x, filters, kernel, strides):
     return activation
 
 
-def incept(x, filters):
-
-    x1 = layer.Conv2D(filters=filters, kernel_size=1, strides=1, activation="relu", padding="same")(x)
-    x1 = layer.Conv2D(filters=filters, kernel_size=3, strides=1, activation="relu", padding="same")(x1)
-    x1 = layer.Conv2D(filters=filters, kernel_size=3, strides=1, activation="relu", padding="same")(x1)
-
-    x2 = layer.Conv2D(filters=filters, kernel_size=1, strides=1, activation="relu", padding="same")(x)
-    x2 = layer.Conv2D(filters=filters, kernel_size=3, strides=1, activation="relu", padding="same")(x2)
-
-    x3 = layer.Conv2D(filters=filters, kernel_size=1, strides=1, activation="relu", padding="same")(x)
-
-    x4 = layer.Conv2D(filters=filters, kernel_size=1, strides=1, activation="relu", padding="same")(x)
-
-    x = layer.Add()([x1, x2, x3, x4])
-    x = layer.AveragePooling2D(filters, padding="same")(x)
-    return x
-
-
 def block_dense(x, output):
     x = layer.Dense(output * 2)(x)
     x = layer.Dense(output * 2)(x)
     x = layer.Dense(output)(x)
     return x
 
-
-def sequence_a(x, filt, kernel, stride):
-    # x = block_norm(x, filt, kernel, stride)
-    x = residual(x, filt, kernel)
-    return x
 
 
 def concat(x, y):
@@ -176,15 +153,13 @@ def fashion_CNN():
     inputs = tf.keras.Input(shape=(224, 224, 3))
     global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
 
-    # TODO tune the kernel size of the convolutional layers
     x = base(inputs, training=False)
     x = layer.Conv2D(filters=64, kernel_size=7, strides=2, padding='same')(x)
-    # x = incept(x, 64)
-    x = sequence_a(x, 64, 1, 1)
+    x = residual(x, 64, 1)
     x = layer.Conv2D(filters=128, kernel_size=3, strides=1, padding='same')(x)
-    x = sequence_a(x, 128, 1, 1)
+    x = residual(x, 128, 1)
     x = layer.Conv2D(filters=256, kernel_size=1, strides=1, padding='same')(x)
-    x = sequence_a(x, 256, 1, 1)
+    x = residual(x, 256, 1)
     x = global_average_layer(x)
     x = layer.Flatten()(x)
     x = tf.keras.layers.Dense(2048)(x)
@@ -212,7 +187,6 @@ def fashion_CNN():
     return model
 
 
-# TODO Make a function for preprocessing images
 def preprocess_img(image, label, img_shape=28):
     image = tf.image.resize(image, [img_shape, img_shape])  # reshape to img_shape
     return tf.cast(image, tf.float32), label  # return (float32_image, label) tuple
@@ -263,6 +237,6 @@ def item_type_CNN():
                           validation_data=test_data, validation_steps=len(test_data), callbacks=[callback1, callback2])
 
 # build_CNN()
-fashion_CNN()
+# fashion_CNN()
 
 # item_type_CNN()

@@ -4,36 +4,30 @@ import os
 import random
 import time
 
-import cv2
 import numpy as np
 import scipy.stats
 from keras.preprocessing import image
 from matplotlib import pyplot as plt
 
-from scipy.spatial import distance
-from sklearn.cluster import AffinityPropagation
 from sklearn.preprocessing import StandardScaler
 import progressbar
 
-import Directories
 import UnsupervisedClustering
 from Weather import extract_weather
 import Directories as dir
 from DB import DB
-from DataPrep import make_pairs, make_squares
+from LocalOutfits import make_pairs, make_squares
 
 sesh = asyncio.new_event_loop()
 temperature, precipitation, overcast = sesh.run_until_complete(extract_weather())
-# print(temperature)
-# print(temperature)
+
 
 paths = dir.clothing_folders
 
 paths_to_use = [paths["pant"], paths["shirt"], paths["coat"], paths["shoe"]]
 names = ["pant", "shirt", "coat", "shoe"]
 output_path_to_use = paths["pair"]
-#
-#
+
 db = DB()
 
 
@@ -112,15 +106,6 @@ def get_dist(arr):
         dist /= tot
 
     return dist
-
-# TODO NOT USED IN THIS CLASS!
-def Affinity(data, labels):
-    X = StandardScaler().fit_transform(data)
-    model = AffinityPropagation(damping=0.9, random_state=None)
-    model.fit(X)
-    yhat = model.predict(X)
-    clusters = np.unique(yhat)
-    return X, labels
 
 
 def features_lists(model):
@@ -218,7 +203,7 @@ def get_outfit():
                 imag = plt.imread(item)
                 plt.imshow(imag)
                 plt.show()
-                item_str = item_str[ind+1:len(item_str)]
+                item_str = item_str[ind + 1:len(item_str)]
                 print(item_str)
             to_save = input("Favorite item? y/n: ").upper()
             if to_save == "N":
@@ -234,12 +219,14 @@ def get_outfit():
 # generate_all_from_scratch()
 # update_accuracy()
 # get_best(None, True)
-# criteria = {"fashionable_likelihood": {"$gt": .70}, "distance": {"$gt": .2}}
+# criteria = {"fashionable_likelihood": {"$gt": .7}, "distance": {"$gt": .001}}
 # get_best(criteria, False, "stack")
 
 # fit = db.collection_types["outfit"].find({"name": 193})
 # for f in fit:
 #     ret_code = db.collection_types["stack"].insert_one(f).inserted_id
 #     print(ret_code)
-get_outfit()
 
+# laundry = set()
+
+get_outfit()

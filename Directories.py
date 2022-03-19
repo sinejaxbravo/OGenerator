@@ -1,11 +1,11 @@
 import pymongo
 
-path_pant = "C:\\Users\\stuar\\Desktop\\PyProjects\\clothes\\pant\\"
-path_shirt = "C:\\Users\\stuar\\Desktop\\PyProjects\\clothes\\shirt\\"
-path_outfit = "C:\\Users\\stuar\\Desktop\\PyProjects\\clothes\\outfit\\"
-path_pair = "C:\\Users\\stuar\\Desktop\\PyProjects\\clothes\\pair\\"
-path_shoe = "C:\\Users\\stuar\\Desktop\\PyProjects\\clothes\\shoe\\"
-path_coat = "C:\\Users\\stuar\\Desktop\\PyProjects\\clothes\\coat\\"
+path_pant = "C:\\Users\\stuar\\Desktop\\OGenerator\\clothes\\pant\\"
+path_shirt = "C:\\Users\\stuar\\Desktop\\OGenerator\\clothes\\shirt\\"
+path_outfit = "C:\\Users\\stuar\\Desktop\\OGenerator\\clothes\\outfit\\"
+path_pair = "C:\\Users\\stuar\\Desktop\\OGenerator\\clothes\\pair\\"
+path_shoe = "C:\\Users\\stuar\\Desktop\\OGenerator\\clothes\\shoe\\"
+path_coat = "C:\\Users\\stuar\\Desktop\\OGenerator\\clothes\\coat\\"
 path_dual = "C:\\Users\\stuar\\Desktop\\TrainingData\\dualclass"
 dirtrain = "/Users/stuar/Desktop/TrainingData/dualclass/train"
 dirtest = "/Users/stuar/Desktop/TrainingData/dualclass/test"
