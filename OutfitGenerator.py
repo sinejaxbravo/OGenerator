@@ -186,7 +186,7 @@ def get_best(criteria, sort=True, collection_name=None):
 def get_outfit():
     count = db.collection_types["stack"].count_documents({})
     rand = db.collection_types["stack"].find().limit(1).skip(random.randint(0, count))
-    seshion = asyncio.new_event_loop()
+    session = asyncio.new_event_loop()
     temp, precip, overc = seshion.run_until_complete(extract_weather())
     resp = "y"
     for r in rand:
