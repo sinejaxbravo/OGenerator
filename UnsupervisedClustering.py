@@ -82,6 +82,10 @@ def PCA_And_K_Means(data, ):
            random_state=1,
            tol=0.0001,  # min. tolerance for distance between clusters
            verbose=0)
+    # instantiate a variable for the centers
+    centers = kmean.cluster_centers_
+    # print the cluster centers
+    print(centers)
 
 
 def get_photos(directory):
