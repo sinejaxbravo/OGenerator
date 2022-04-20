@@ -68,17 +68,20 @@ def PCA_And_K_Means(data, ):
     pca = PCA(n_components=100, random_state=22)
     pca.fit(data)
     x = pca.transform(data)
-    kmeans = KMeans(n_clusters=3, n_jobs=-1, random_state=22)
-    label = kmeans.fit(x)
-    u_labels = np.unique(label)
-    pickle.dump(kmeans, open("kmeans_pairs.pkl", "wb"))
-
-    # plotting the results
-    for i in u_labels:
-        plt.scatter(x[label == i, 0], x[label == i, 1], label=i)
-    plt.legend()
-    plt.show()
-
+    kmean = KMeans(n_clusters=30, random_state=1)
+    # Fit on data
+    kmean.fit(x)
+    KMeans(algorithm='auto',
+           copy_x=True,
+           init='k-means++',  # selects initial cluster centers
+           max_iter=300,
+           n_clusters=3,
+           n_init=10,
+           n_jobs=None,
+           precompute_distances='auto',
+           random_state=1,
+           tol=0.0001,  # min. tolerance for distance between clusters
+           verbose=0)
 
 
 def get_photos(directory):
@@ -91,6 +94,7 @@ def get_photos(directory):
 def features_lists(directory, model):
     data = {}
     i = 0
+
     with progressbar.ProgressBar(max_value=len(directory)) as bar:
         for pic in directory:
             bar.update(i)
@@ -139,6 +143,8 @@ def train():
 
 def model(images, res, mode="m", pca=False):
     # vgg = VGG16()
+    # pair, pair_feats = get_photos_and_features(res)
+    # PCA_And_K_Means(pair_feats)
     model = res
     model = Model(inputs=model.inputs, outputs=model.layers[-1].output)
     if pca:
@@ -149,5 +155,4 @@ def model(images, res, mode="m", pca=False):
         pairs, pair_feats = features_lists(images, model)
 
         return Affinity(pair_feats, pairs, mode)
-    # Affinity(pair_feats, pairs, "u", ".5 ", 1.5)
-    # Affinity(pair_feats, pairs, "u", ".5 ", 0)
+
